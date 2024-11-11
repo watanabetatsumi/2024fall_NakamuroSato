@@ -5,17 +5,23 @@ library(modelsummary)
 library(gtsummary)
 library(fixest)
 
-fitmodel <- feols(u18_subsatanceExp ~ birthOrder + | childID + motherID + year ,data = alldf)
-
 # スコア予測
-B1_model <- glm(subsatanceExp ~ NYS + age_gap + familySize,data=alldf)
-summary(B1_model)
+B1model <- glm(subsatanceExp ~ NYS + age_gap + familySize, data = alldf)
+summary(B1model)
 
-B1_fix_model <- glm(subsatanceExp ~ NYS + age_gap + familySize + Isfemale + IsBlack + IsHispanic + IsUrban,data=alldf)
-summary(B1_fix_model)
+# B1model <- glm(u18_subsatanceExp ~ NYS + age_gap + familySize, data = u18_alldf)
+# summary(B1model)
 
-ps_fit <- feols(u18_subsatanceExp ~ NYS + age_gap + familySize | motherID ,data=alldf)
-summary(ps_fit)
+B1fixmodel <- glm(
+  subsatanceExp ~ NYS + age_gap + familySize
+  + Isfemale + IsBlack + IsHispanic + IsUrban
+  , data = alldf
+)
+summary(B1fixmodel)
 
-ps_fit <- feols(u18_subsatanceExp ~ NYS + age_gap + familySize+ Isfemale + IsBlack + IsHispanic | motherID ,data=alldf)
-summary(ps_fit)
+B1Twofixmodel <- feglm(
+  subsatanceExp ~ NYS + age_gap
+  | motherID + year
+  , data = alldf
+)
+summary(B1Twofixmodel)

@@ -346,3 +346,40 @@ labelcolums <- function(dfNaive){
   return(df)
 }
 
+# Ttest関数 -----------------------------------------------------------
+Ttest <- function(df_T,f_name){
+  # 各t検定の結果を取得
+  library(broom)
+  result_female <- t.test(`女ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_black <- t.test(`黒人ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_hispanic <- t.test(`ヒスパニックダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_urban <- t.test(`都市居住ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  # 各結果をリストにまとめる
+  results_list <- c(
+    female = result_female,
+    black = result_black,
+    hispanic = result_hispanic,
+    urban = result_urban
+  )
+  
+  all_results_df <- rbind(
+    data.frame(Test = "Female", result_female),
+    data.frame(Test = "Black", result_black),
+    data.frame(Test = "Hispanic", result_hispanic),
+    data.frame(Test = "Urban", result_urban)
+  )
+  
+  file_path <- "./outputs/"
+  file_path <- paste(file_path,as.character(f_name),".csv")
+  if (file.exists(file_path)) {
+    file.remove(file_path)
+  }
+  # 
+  # エクセルファイルに書き込む
+  write.csv(all_results_df, file_path)
+  library(readr)
+  dfname <- "T_"
+  dfname <- paste(dfname,as.character(f_name))
+  dfname<- read_csv(file_path)
+  View(dfname)
+}
