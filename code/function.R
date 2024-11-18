@@ -20,14 +20,14 @@ changeValue <- function(dfNaive){
   )
   
   df <- df %>% select(
-    childID,
-    motherID,
+    ChildID,
+    MotherID,
     race,
     Isfemale,
-    firstSurveyYear,
-    birthYear,
-    birthOrder,
-    motherAgeAtBirth
+    FirstSurveyYear,
+    BirthYear,
+    BirthOrder,
+    MotherAgeAtBirth
     # CSIBID02_XRND,
     # CSIBID03_XRND,
     # CSIBID04_XRND
@@ -40,18 +40,18 @@ changeValue <- function(dfNaive){
 
 renameData <- function(dfNaive){
   df <- dfNaive %>% rename(
-    childID = CPUBID_XRND,
-    motherID = MPUBID_XRND,
+    ChildID = CPUBID_XRND,
+    MotherID = MPUBID_XRND,
     race = CRACE_XRND,
     sex = CSEX_XRND,
-    firstSurveyYear = FSTYRAFT_XRND,
-    birthYear = CYRB_XRND,
-    birthOrder = BTHORDR_XRND,
-    motherAgeAtBirth = MAGEBIR_XRND,
+    FirstSurveyYear = FSTYRAFT_XRND,
+    BirthYear = CYRB_XRND,
+    BirthOrder = BTHORDR_XRND,
+    MotherAgeAtBirth = MAGEBIR_XRND,
   )
   df <- df %>% filter(
-    birthYear > 1970,
-    firstSurveyYear > 1970
+    BirthYear > 1970,
+    FirstSurveyYear > 1970
   )
   
   return(df)
@@ -62,23 +62,23 @@ renameData <- function(dfNaive){
 
 makeMotherEducdf <- function(df){
   df$HGCREV1994_1994 <- df$HGCREV1993_1993
-  years <- c(seq(1979,1993),seq(1994,2016, by = 2))
-  colnames <- unlist(map(years, ~Nameyear("HGCREV", .x)))
+  Years <- c(seq(1979,1993),seq(1994,2016, by = 2))
+  colnames <- unlist(map(Years, ~NameYear("HGCREV", .x)))
   df <- df %>% 
     rename_with(~ gsub("HGCREV(\\d+)_(\\d+)", "HGCREV\\1", .), starts_with("HGCREV")) %>%  
     pivot_longer(cols = colnames, 
-                 names_to = "year",
+                 names_to = "Year",
                  names_prefix = "HGCREV",
                  values_to = "motherEduc")
-  df$year = as.numeric(df$year)
+  df$Year = as.numeric(df$Year)
   motherEducdf <- df %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
-    year,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
+    Year,
     motherEduc
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   return(motherEducdf)
 }
@@ -87,23 +87,23 @@ makeMotherEducdf <- function(df){
 # makeFamilySizedf関数 ------------------------------------------------------
 
 makeFamilySizedf <- function(df){
-  years <- c(seq(1979,1993),seq(1994,2014, by = 2))
-  colnames <- unlist(map(years, ~Nameyear("NFAMEM", .x)))
+  Years <- c(seq(1979,1993),seq(1994,2014, by = 2))
+  colnames <- unlist(map(Years, ~NameYear("NFAMEM", .x)))
   df <- df %>% 
     rename_with(~ gsub("NFAMEM(\\d+)_(\\d+)", "NFAMEM\\1", .), starts_with("NFAMEM")) %>%  
     pivot_longer(cols = colnames, 
-                 names_to = "year",
+                 names_to = "Year",
                  names_prefix = "NFAMEM",
                  values_to = "familySize")
-  df$year <- as.numeric(df$year)
+  df$Year <- as.numeric(df$Year)
   familySizedf <- df %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
-    year,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
+    Year,
     familySize
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   return(familySizedf)
 }
@@ -113,11 +113,11 @@ makeFamilySizedf <- function(df){
 
 makePIATscoredf <- function(df){
   # PIAT-Math
-  years <- seq(1986,2014,by = 2)
-  colnames_math <- unlist(map(years, ~Nameyear("MATHZ", .x)))
-  colnames_recog <- unlist(map(years, ~Nameyear("RECOGZ", .x)))
-  colnames_vocab <- unlist(map(years, ~Nameyear("PPVTZ", .x)))
-  colnames_compreh <- unlist(map(years, ~Nameyear("COMPZ", .x)))
+  Years <- seq(1986,2014,by = 2)
+  colnames_math <- unlist(map(Years, ~NameYear("MATHZ", .x)))
+  colnames_recog <- unlist(map(Years, ~NameYear("RECOGZ", .x)))
+  colnames_vocab <- unlist(map(Years, ~NameYear("PPVTZ", .x)))
+  colnames_compreh <- unlist(map(Years, ~NameYear("COMPZ", .x)))
   df_math <- df %>% 
     rename_with(~ gsub("MATHZ(\\d+)_(\\d+)", "MATHZ\\1", .), starts_with("MATHZ")) %>% 
     pivot_longer(cols = colnames_math, 
@@ -126,15 +126,15 @@ makePIATscoredf <- function(df){
                  values_to = "PIATmath_v")
   df_math$PIATmath <- as.numeric(df_math$PIATmath)
   df_math <- df_math %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
     PIATmath,
     PIATmath_v
   ) %>% rename(
-    year = PIATmath
+    Year = PIATmath
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   
   # PIAT-Recognition
@@ -146,15 +146,15 @@ makePIATscoredf <- function(df){
                  values_to = "PIATrecog_v")
   df_recog$PIATrecog <- as.numeric(df_recog$PIATrecog)
   df_recog <- df_recog %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
     PIATrecog,
     PIATrecog_v
   ) %>% rename(
-    year = PIATrecog
+    Year = PIATrecog
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   
   # PIAT-Comprehension
@@ -166,15 +166,15 @@ makePIATscoredf <- function(df){
                  values_to = "PIATcompreh_v")
   df_compreh$PIATcompreh <- as.numeric(df_compreh$PIATcompreh)
   df_compreh <- df_compreh %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
     PIATcompreh,
     PIATcompreh_v
   ) %>% rename(
-    year = PIATcompreh
+    Year = PIATcompreh
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   
   # PIAT-Vocabulary
@@ -186,23 +186,23 @@ makePIATscoredf <- function(df){
                  values_to = "PIATvocab_v")
   df_vocab$PIATvocab <- as.numeric(df_vocab$PIATvocab)
   df_vocab <- df_vocab %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
     PIATvocab,
     PIATvocab_v
   ) %>% rename(
-    year = PIATvocab
+    Year = PIATvocab
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   
-  piatScoredf <- reduce(list(df_math, df_recog, df_compreh, df_vocab), full_join, by = c('childID', 'motherID', 'year','firstSurveyYear')) %>% 
+  piatScoredf <- reduce(list(df_math, df_recog, df_compreh, df_vocab), full_join, by = c('ChildID', 'MotherID', 'Year','FirstSurveyYear')) %>% 
     select(
-      childID,
-      motherID,
-      year,
-      firstSurveyYear,
+      ChildID,
+      MotherID,
+      Year,
+      FirstSurveyYear,
       PIATmath_v,
       PIATrecog_v,
       PIATcompreh_v,
@@ -216,46 +216,46 @@ makePIATscoredf <- function(df){
 # makeTroubleScoredf ------------------------------------------------------
 
 makeTroubleScoredf <- function(df){
-  years <- seq(2000,2014,by = 2)
-  colnames_trouble <- unlist(map(years, ~Nameyear("BPIZ", .x)))
+  Years <- seq(2000,2014,by = 2)
+  colnames_trouble <- unlist(map(Years, ~NameYear("BPIZ", .x)))
   df_trouble <- df %>%
     rename_with(~ gsub("BPIZ(\\d+)_(\\d+)", "BPIZ\\1", .), starts_with("BPIZ")) %>% 
     pivot_longer(cols = colnames_trouble, 
-                 names_to = "year",
+                 names_to = "Year",
                  names_prefix = "BPIZ",
                  values_to = "TroubleScore")
-  df_trouble$year <- as.numeric(df_trouble$year)
+  df_trouble$Year <- as.numeric(df_trouble$Year)
   df_trouble <- df_trouble %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
-    year,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
+    Year,
     TroubleScore
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
 }
 
 # makeTransfer関数 ----------------------------------------------------------
 
 makeTransferdf <- function(df){
-  years <- seq(2006,2020,by = 2)
-  colnames_transfer <- unlist(map(years, ~Nameyear("Q15-74D", .x)))
+  Years <- seq(2006,2020,by = 2)
+  colnames_transfer <- unlist(map(Years, ~NameYear("Q15-74D", .x)))
   df_transfer <- df %>% 
     rename_with(~ gsub("Q15-74D_(\\d+)", "Q15-74D\\1", .), starts_with("Q15-74D")) %>% 
     pivot_longer(cols = colnames_transfer, 
-                 names_to = "year",
+                 names_to = "Year",
                  names_prefix = "Q15-74D",
                  values_to = "Transfer")
-  df_transfer$year <- as.numeric(df_transfer$year)
+  df_transfer$Year <- as.numeric(df_transfer$Year)
   df_transfer <- df_transfer %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
-    year,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
+    Year,
     Transfer
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
 }
 
@@ -263,8 +263,8 @@ makeTransferdf <- function(df){
 # makeAlcoholcomp関数 -----------------------------------------------------------
 
 makeAlcoholcomp <- function(df){
-  years <- seq(2006,2020,by = 2)
-  colnames_alcoholComp <- unlist(map(years, ~Nameyear("YASR-5A", .x)))
+  Years <- seq(2006,2020,by = 2)
+  colnames_alcoholComp <- unlist(map(Years, ~NameYear("YASR-5A", .x)))
   df_alcoholComp <- df %>% 
     rename_with(~ gsub("YASR-5A_(\\d+)", "YASR-5A\\1", .), starts_with("YASR-5A")) %>% 
     pivot_longer(cols = colnames_alcoholComp, 
@@ -273,61 +273,61 @@ makeAlcoholcomp <- function(df){
                  values_to = "AlcoholComp_v")
   df_alcoholComp$AlcoholComp <- as.numeric(df_alcoholComp$AlcoholComp)
   df_alcoholComp <- df_alcoholComp %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
     AlcoholComp,
     AlcoholComp_v
   ) %>% rename(
-    year = AlcoholComp
+    Year = AlcoholComp
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   return(df_alcoholComp)
 }
 
 # makeVariabledf関数 -----------------------------------------------------------
 
-makeVariabledf <- function(df,VarName,Name,firstyear,lastyear){
-  if (1993 < firstyear){
-    years <- seq(firstyear,lastyear,by = 2)
+makeVariabledf <- function(df,VarName,Name,firstYear,lastYear){
+  if (1993 < firstYear){
+    Years <- seq(firstYear,lastYear,by = 2)
   }
   else{
-    years <- seq(firstyear,1993) + seq(1994,lastyear,by = 2)
+    Years <- seq(firstYear,1993) + seq(1994,lastYear,by = 2)
   }
-  colnames <- unlist(map(years, ~Name_year(VarName, .x)))
+  colnames <- unlist(map(Years, ~Name_Year(VarName, .x)))
   prefix <- paste0(VarName,"_")
   df_t <- df %>% 
     pivot_longer(cols = colnames, 
-                 names_to = "year",
+                 names_to = "Year",
                  names_prefix = prefix,
                  values_to = Name)
-  df_t$year <- as.numeric(df_t$year)
+  df_t$Year <- as.numeric(df_t$Year)
   df_t <- df_t %>% select(
-    childID,
-    motherID,
-    firstSurveyYear,
-    year,
+    ChildID,
+    MotherID,
+    FirstSurveyYear,
+    Year,
     !!rlang::sym(Name)
   ) %>% filter(
-    year >= firstSurveyYear
+    Year >= FirstSurveyYear
   )
   return(df_t)
 }
 
 
-# Nameyear関数 --------------------------------------------------------------
+# NameYear関数 --------------------------------------------------------------
 
 
-Nameyear <- function(varName,year){
-  name <- paste0(varName,as.character(year))
+NameYear <- function(varName,Year){
+  name <- paste0(varName,as.character(Year))
   return(name)
 }
 
-# Name_year関数 -------------------------------------------------------------
+# Name_Year関数 -------------------------------------------------------------
 
-Name_year <- function(varName,year){
-  name <- paste0(varName,"_",as.character(year))
+Name_Year <- function(varName,Year){
+  name <- paste0(varName,"_",as.character(Year))
   return(name)
 }
 
@@ -466,10 +466,10 @@ hist_f <- function(df, name) {
 
 makeStatic_df <- function(df){
   f_df <- df %>% rename(
-    "子供ID" = childID,
-    "母親ID" = motherID,
-    "調査開始年度" = firstSurveyYear,
-    "調査年度" = year,
+    "子供ID" = ChildID,
+    "母親ID" = MotherID,
+    "調査開始年度" = FirstSurveyYear,
+    "調査年度" = Year,
     "出生年" = birthYear,
     "年齢" = age,
     "移転(Y)" = Transfer,
