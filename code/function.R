@@ -27,6 +27,7 @@ changeValue <- function(dfNaive){
     firstSurveyYear,
     birthYear,
     birthOrder,
+    motherAgeAtBirth
     # CSIBID02_XRND,
     # CSIBID03_XRND,
     # CSIBID04_XRND
@@ -46,6 +47,7 @@ renameData <- function(dfNaive){
     firstSurveyYear = FSTYRAFT_XRND,
     birthYear = CYRB_XRND,
     birthOrder = BTHORDR_XRND,
+    motherAgeAtBirth = MAGEBIR_XRND,
   )
   df <- df %>% filter(
     birthYear > 1970,
@@ -354,19 +356,28 @@ Ttest <- function(df_T,f_name){
   result_black <- t.test(`黒人ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
   result_hispanic <- t.test(`ヒスパニックダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
   result_urban <- t.test(`都市居住ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_educ <- t.test(`教育年数` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_birth <- t.test(`弟妹の数` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_order <- t.test(`出生順位` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
   # 各結果をリストにまとめる
   results_list <- c(
     female = result_female,
     black = result_black,
     hispanic = result_hispanic,
-    urban = result_urban
+    urban = result_urban,
+    educ = result_educ,
+    birth = result_birth,
+    order = result_order
   )
   
   all_results_df <- rbind(
-    data.frame(Test = "Female", result_female),
-    data.frame(Test = "Black", result_black),
-    data.frame(Test = "Hispanic", result_hispanic),
-    data.frame(Test = "Urban", result_urban)
+    data.frame(Test = "女性ダミー", result_female),
+    data.frame(Test = "黒人ダミー", result_black),
+    data.frame(Test = "ヒスパニックダミー", result_hispanic),
+    data.frame(Test = "都市居住ダミー", result_urban),
+    data.frame(Test = "教育年数", result_educ),
+    data.frame(Test = "弟妹の数", result_birth),
+    data.frame(Test = "出生順位", result_order)
   )
   
   file_path <- "./outputs/"
@@ -382,4 +393,171 @@ Ttest <- function(df_T,f_name){
   dfname <- paste(dfname,as.character(f_name))
   dfname<- read_csv(file_path)
   View(dfname)
+}
+
+
+# hist_f関数 ----------------------------------------------------------------
+
+hist_f <- function(df, name) {
+  # nameを文字列として扱う
+  
+  # いずれのパターンでも可
+  # hist_f(fclean_alldf, "出生順位")      # 文字列として
+  # hist_f(fclean_alldf, `出生順位`)      # バッククォートで
+  # hist_f(fclean_alldf, 出生順位)        # シンボルとして
+  
+  # deparse(substitute(name))　を使って、変数名を文字列として使う
+  # if() 条件1 else 条件２
+  name_str <- if(is.character(name)) name else deparse(substitute(name))
+  
+  if (name_str == "出生順位") {
+    hist(
+      df$出生順位,
+      breaks = seq(0, 11, 1),
+      main = "出生順位の分布",
+      xlab = "出生順位",
+      ylab = "人数"
+    )
+  } else if (name_str == "弟妹の数") {
+    hist(
+      df$弟妹の数,
+      breaks = seq(0, 11, 1),
+      main = "出生順位の分布-2",
+      xlab = "弟妹の数",
+      ylab = "人数"
+    )
+  } else if (name_str == "下との年齢差") {
+    hist(
+      df$下との年齢差,
+      breaks = seq(0, 30, 1),
+      main = "年齢差の分布",
+      xlab = "年齢差",
+      ylab = "人数"
+    )
+  } else if (name_str == "家族サイズ") {
+    hist(
+      df$家族サイズ,
+      main = "家族サイズの分布",
+      xlab = "家族サイズ",
+      ylab = "家庭数"
+    )
+  } else if (name_str == "年齢") {
+    hist(
+      df$年齢,
+      breaks = seq(min(df$年齢), max(df$年齢), 1),  # 年齢に応じた適切な区間
+      main = "年齢の分布",
+      xlab = "年齢",
+      ylab = "人数"
+    )
+  } else {
+    hist(
+      df[[name_str]],
+      main = paste0(name_str, "の分布"),
+      xlab = name_str,
+      ylab = "人数"
+    )
+  }
+}
+
+
+
+# makeStatic_df関数 ---------------------------------------------------------
+
+
+makeStatic_df <- function(df){
+  f_df <- df %>% rename(
+    "子供ID" = childID,
+    "母親ID" = motherID,
+    "調査開始年度" = firstSurveyYear,
+    "調査年度" = year,
+    "出生年" = birthYear,
+    "年齢" = age,
+    "移転(Y)" = Transfer,
+    "移転over50%ダミー(Y)" = IsTransfer_over50,
+    "女ダミー"= Isfemale,
+    "黒人ダミー" = IsBlack,
+    "ヒスパニックダミー" = IsHispanic,
+    "都市住みダミー" = IsUrban,
+    "出生順位" = birthOrder,
+    "第1子ダミー" = Is1th,
+    "第2子ダミー" = Is2th,
+    "第3子ダミー" = Is3th,
+    "第4子ダミー" = Is4th,
+    "兄弟の数" = N_siblings,
+    "弟妹の数" = NYS,
+    "未成年の弟妹の数" = U18NYS,
+    "下との年齢差" = age_gap,
+    "母親の年齢" = motherAge,
+    "教育年数(母)" = motherEduc,
+    "家族サイズ" = familySize,
+    "家族収入" = FamilyIncome,
+    "数学スコア" = PIATmath_v,
+    "読解力スコア" = PIATrecog_v,
+    "読解把握スコア" = PIATcompreh_v,
+    "非行スコア" = TroubleScore,
+    "語彙力" = PIATvocab_v,
+    "物質使用経験(総合)" = substanceExp,
+    "飲酒経験" = AlcoholExp,
+    "大麻経験" = MarijuanaExp,
+    "喫煙経験" = TabacoExp,
+    "乱用経験" = IsAbuse,
+    "18歳以下ダミー" = IsU18,
+    "教育年数" = educ,
+    "高校卒業ダミー" = IsGraduate,
+    "大学生ダミー" = IsCollegeStudent,
+    "リスク_好みダミー" = IsEnjoyRisk,
+    "未成年使用ダミー(総合)" = u18_substanceExp,
+    "未成年飲酒ダミー" = u18_alcExp,
+    "未成年大麻使用ダミー" = u18_mariExp,
+    "未成年喫煙ダミー" = u18_tabcExp,
+    "未成年乱用ダミー" = u18_Abuse
+  ) %>% select(
+    "子供ID",
+    "母親ID",
+    "出生年",
+    "年齢",
+    # "教育年数",
+    "調査開始年度",
+    "調査年度",
+    "女ダミー",
+    "母親の年齢",
+    # "移転over50%ダミー(Y)",
+    "出生順位",
+    "第1子ダミー",
+    "第2子ダミー",
+    "第3子ダミー",
+    "第4子ダミー",
+    # "兄弟の数",
+    "未成年の弟妹の数",
+    "弟妹の数",
+    "下との年齢差",
+    "未成年使用ダミー(総合)",
+    # "未成年飲酒ダミー",
+    # "未成年大麻使用ダミー",
+    # "未成年喫煙ダミー",
+    # "未成年乱用ダミー",
+    "物質使用経験(総合)",
+    # "家族サイズ",
+    "家族収入",
+    "18歳以下ダミー",
+    "都市住みダミー",
+    # "黒人ダミー",
+    # "ヒスパニックダミー",
+    # "リスク_好みダミー"
+  )
+  return(f_df)
+}
+
+
+# IsColname関数 -------------------------------------------------------------
+
+IsColname <- function(word,df){
+  list <- names(df)
+  if(word %in% list){
+    index <- grep(word,list)
+    return(index)
+  }
+  else{
+    return ("none")
+  }
 }
