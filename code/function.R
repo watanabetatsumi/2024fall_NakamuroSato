@@ -27,7 +27,7 @@ changeValue <- function(dfNaive){
     FirstSurveyYear,
     BirthYear,
     BirthOrder,
-    MotherAgeAtBirth
+    motherAgeAtBirth
     # CSIBID02_XRND,
     # CSIBID03_XRND,
     # CSIBID04_XRND
@@ -47,7 +47,7 @@ renameData <- function(dfNaive){
     FirstSurveyYear = FSTYRAFT_XRND,
     BirthYear = CYRB_XRND,
     BirthOrder = BTHORDR_XRND,
-    MotherAgeAtBirth = MAGEBIR_XRND,
+    motherAgeAtBirth = MAGEBIR_XRND,
   )
   df <- df %>% filter(
     BirthYear > 1970,

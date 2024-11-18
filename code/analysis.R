@@ -14,7 +14,7 @@ clean_alldf <- alldf %>% filter(
   # 2子以上いる家庭に限定
   N_siblings > 1,
   # NYS < 5,
-  N_siblings < 5,
+  # N_siblings < 5,
   # age_gap < 15,
   # age < 25
 )
@@ -53,28 +53,31 @@ shinto()
 # 線形回帰モデル -------------------------------------------------------------------
 
 
-B1model_lm <- feols(u18_substanceExp ~ U18NYS + AGAP
-                    + Isfemale + IsUrban
-                    + birthOrder
+B1model_lm <- feols(u18_substanceExp ~ NYS + age_gap
+                    + Isfemale
+                    + N_siblings
                     | motherID 
+                    + birthYear
                     , data = clean_alldf
 )
 summary(B1model_lm)
 etable(B1model_lm)
 
-B1model_lm_marijuana <- feols(u18_mariExp ~ U18NYS + AGAP 
-                    + Isfemale + IsUrban
-                    + birthOrder
-                    | motherID 
-                    , data = clean_alldf
+B1model_lm_marijuana <- feols(IsGraduate ~ NYS + age_gap
+                              + Isfemale
+                              + N_siblings
+                              | motherID 
+                              + birthYear
+                              , data = clean_alldf
 )
 summary(B1model_lm_marijuana)
 etable(B1model_lm_marijuana)
 
-B1model_lm_alcohol <- feols(u18_alcExp ~ U18NYS + AGAP 
-                    + Isfemale + IsUrban
-                    | motherID 
-                    , data = clean_alldf
+B1model_lm_alcohol <- feols(u18_substanceExp ~ U18NYS + AGAP
+                            + Isfemale
+                            + N_siblings
+                            | motherID + birthYear 
+                            , data = clean_alldf
 )
 summary(B1model_lm_alcohol)
 etable(B1model_lm_alcohol)
@@ -92,11 +95,24 @@ etable(B1model_lm_tabaco)
 
 
 B1model_glm <- feglm(u18_substanceExp ~ U18NYS + AGAP
-                 + Isfemale + IsUrban 
-                 | motherID
-                 , family = binomial(link = logit)
-                 , data = clean_alldf
-                 )
+                     + Isfemale
+                     + N_siblings
+                     | motherID 
+                     + birthYear
+                     , family = binomial(link = logit)
+                     , data = clean_alldf
+                     )
+summary(B1model_glm)
+exp(coef(B1model_glm))
+
+B1model_glm <- feglm(IsGraduate ~ U18NYS + AGAP
+                     + Isfemale
+                     + N_siblings
+                     | motherID 
+                     + birthYear
+                     , family = binomial(link = logit)
+                     , data = clean_alldf
+)
 summary(B1model_glm)
 exp(coef(B1model_glm))
 
