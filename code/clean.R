@@ -83,17 +83,17 @@ alldf <- raw_df
 
 # 出生順位に関する変数 --------------------------------------------------------------
 
-alldf <- alldf %>% group_by(MotherID,Year) %>%
+alldf2 <- alldf %>% group_by(MotherID,Year) %>%
   mutate(
     
     # 兄弟の数
     N_siblings = max(BirthOrder, na.rm = TRUE),
     
     # 下の兄弟の数
-    NYS_ij = N_siblings - BirthOrder,
+    NYG_ij = N_siblings - BirthOrder,
     
     # 下の兄弟との差
-    AGAP_ij = lag(BirthYear, order_by = NYS_ij) - BirthYear,
+    AGAP_ij = lag(BirthYear, order_by = NYG_ij) - BirthYear,
     
     # ※NA処理
     AGAP_ij = ifelse(is.na(AGAP_ij),0,AGAP_ij),
@@ -125,12 +125,12 @@ alldf <- alldf %>% group_by(MotherID,Year) %>%
     # 兄弟の数が欠けていないかVaildate
     Valid_Nsiblings = ifelse(n() == N_siblings,1,0),
     
-  ) %>% arrange(NYS_ij) %>% mutate(
+  ) %>% arrange(NYG_ij) %>% mutate(
     
-    NYS_ijt = cumsum(ifelse(Age < 18,1,0)),
-    NYS_ijt = case_when(
-                        Age < 18 ~ NYS_ijt - 1,
-                        TRUE ~ NYS_ijt
+    NYG_ijt = cumsum(ifelse(Age < 18,1,0)),
+    NYG_ijt = case_when(
+                        Age < 18 ~ NYG_ijt - 1,
+                        TRUE ~ NYG_ijt
                        )
   ) %>% 
   ungroup() %>% group_by(MotherID,Year,BirthYear) %>%
@@ -148,7 +148,7 @@ alldf <- alldf %>% group_by(MotherID,Year) %>%
 # メインの共変量作成 ---------------------------------------------------------------
 
 
-alldf <- alldf %>% mutate(
+alldf3 <- alldf2 %>% mutate(
   
   isAbuse = case_when(
                         # これは正しそう
@@ -200,7 +200,7 @@ alldf <- alldf %>% mutate(
                             )
 
 
-alldf <- alldf %>% mutate(
+alldf4 <- alldf3 %>% mutate(
   # 未成年ダミー(18歳未満=1)
   isU18 = case_when(
                       # これは正しそう
@@ -347,7 +347,7 @@ alldf <- alldf %>% mutate(
                       )
 )
 
-alldf <- alldf %>% group_by(ChildID,MotherID) %>% arrange(Year) %>% 
+alldf <- alldf4 %>% group_by(ChildID,MotherID) %>% arrange(Year) %>% 
   mutate(
     # 母親の年齢
     MotherAge = (Year - FirstSurveyYear) + motherAgeAtBirth,
@@ -388,7 +388,16 @@ alldf <- alldf %>% group_by(ChildID,MotherID) %>% arrange(Year) %>%
                                   TRUE ~ NA
                                  ),
     
-    AGAP_ijt = ifelse(AGAP_ij == 0, 0, AGAP_ijt)
+    AGAP_ijt = ifelse(is.na(AGAP_ijt), 0, AGAP_ijt),
+    AGAP_ij = ifelse(is.na(AGAP_ij), 0, AGAP_ij),
+    NYG_ijt = ifelse(is.na(NYG_ijt), 0, NYG_ijt),
+    NYG_ij = ifelse(is.na(NYG_ij), 0, NYG_ij),
+    
+    IsGraduate = case_when(
+                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 1 ~ 1,
+                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 0 ~ 0,
+                            TRUE ~ NA
+                           )
     
   ) %>% ungroup()
 
@@ -422,8 +431,8 @@ f_alldf <- alldf %>% rename(
   "第3子ダミー" = Is3th,
   "第4子ダミー" = Is4th,
   "兄弟の数" = N_siblings,
-  "弟妹の数" = NYS_ij,
-  "未成年の弟妹の数" = NYS_ijt,
+  "弟妹の数" = NYG_ij,
+  "未成年の弟妹の数" = NYG_ijt,
   "年下の兄弟との年齢差" = AGAP_ij,
   "未成年の下の兄弟との年齢差" = AGAP_ijt,
   "教育年数(母)" = motherEduc,
@@ -493,19 +502,19 @@ summary
 
 # 補足
 
-sapply(alldf[, c("U18_alcExp", "U18_mariExp", "U18_tabcExp", "U18_Abuse")], function(x) sum(is.na(x)))
-sum(is.na(alldf$U18_SubstanceExp))
-sum(!is.na(alldf$U18_SubstanceExp) & !is.na(alldf$U18_alcExp))
-sum(!is.na(alldf$U18_SubstanceExp) & !is.na(alldf$U18_alcExp) & !is.na(alldf$U18_mariExp) & !is.na(alldf$U18_tabcExp)& !is.na(alldf$U18_Abuse))
-
-
-
-ggplot(alldf, aes(x = BirthOrder, y = SubstanceExp)) +
-  geom_smooth(method = "glm", 
-              method.args = list(family = binomial(link = logit)),
-              color = "blue", se = TRUE) +
-  labs(x = "出生順位", y = "未成年使用ダミー") +
-  theme_bw()+
-  scale_x_continuous(limits = c(0, NA)) +  # x軸の最小値を0に設定
-  scale_y_continuous(limits = c(0, NA))    # y軸の最小値を0に設定
+# sapply(alldf[, c("U18_alcExp", "U18_mariExp", "U18_tabcExp", "U18_Abuse")], function(x) sum(is.na(x)))
+# sum(is.na(alldf$U18_SubstanceExp))
+# sum(!is.na(alldf$U18_SubstanceExp) & !is.na(alldf$U18_alcExp))
+# sum(!is.na(alldf$U18_SubstanceExp) & !is.na(alldf$U18_alcExp) & !is.na(alldf$U18_mariExp) & !is.na(alldf$U18_tabcExp)& !is.na(alldf$U18_Abuse))
+# 
+# 
+# 
+# ggplot(alldf, aes(x = BirthOrder, y = SubstanceExp)) +
+#   geom_smooth(method = "glm", 
+#               method.args = list(family = binomial(link = logit)),
+#               color = "blue", se = TRUE) +
+#   labs(x = "出生順位", y = "未成年使用ダミー") +
+#   theme_bw()+
+#   scale_x_continuous(limits = c(0, NA)) +  # x軸の最小値を0に設定
+#   scale_y_continuous(limits = c(0, NA))    # y軸の最小値を0に設定
 

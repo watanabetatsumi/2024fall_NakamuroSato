@@ -13,7 +13,7 @@ clean_alldf <- alldf %>% filter(
   # Is1th == 1 | Is2th == 1 | Is3th == 1 | Is4th == 1,
   # 2子以上いる家庭に限定
   N_siblings > 1,
-  # NYS < 5,
+  # NYG < 5,
   # N_siblings < 5,
   # age_gap < 15,
   # age < 25
@@ -21,25 +21,36 @@ clean_alldf <- alldf %>% filter(
 
 fclean_alldf <- makeStatic_df(clean_alldf)
 
-hist_f(fclean_alldf,"出生順位")
-hist_f(fclean_alldf,"弟妹の数")
-hist_f(fclean_alldf,"下との年齢差")
-hist(
-  fclean_alldf$未成年の弟妹の数,
-  breaks = seq(0, 8, 1),
-  main = "未成年の弟妹の数の分布",
-  xlab = "未成年の弟妹の数",
-  ylab = "人数"
-)
-hist_f(fclean_alldf,"年齢")
+# hist_f(fclean_alldf,"出生順位")
+# hist_f(fclean_alldf,"弟妹の数")
+# hist_f(fclean_alldf,"下との年齢差")
+# hist(
+#   fclean_alldf$未成年の弟妹の数,
+#   breaks = seq(0, 8, 1),
+#   main = "未成年の弟妹の数の分布",
+#   xlab = "未成年の弟妹の数",
+#   ylab = "人数"
+# )
+# # hist_f(fclean_alldf,"年齢")
 
-hist(clean_alldf$AGAP)
-
+hist(alldf$AGAP_ij)
+hist(alldf$AGAP_ijt)
+hist(alldf$NYG_ij)
+hist(alldf$NYG_ijt)
+hist(alldf$Age)
+hist(alldf$BirthYear)
+hist(alldf$Year)
+hist(alldf$MainTransfer)
+hist(alldf$BirthOrder)
+hist(alldf$IsLiveTogether)
+hist(alldf$IsTransfered)
+hist(alldf$IsTransfer_over50)
+hist(alldf$U18_SubstanceExp)
 
 # 基本統計量 -------------------------------------------------------------------
 
 
-fclean_alldf <- na.omit(fclean_alldf)
+# fclean_alldf <- na.omit(fclean_alldf)
 summary <- datasummary(All(fclean_alldf) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
                        data = fclean_alldf,
                        na.rm = TRUE,
@@ -53,36 +64,64 @@ shinto()
 # 線形回帰モデル -------------------------------------------------------------------
 
 
-B1model_lm <- feols(u18_substanceExp ~ NYS + age_gap
+B1model_lm <- feols(U18_SubstanceExp ~ NYG_ijt + AGAP_ijt
                     + Isfemale
+                    + IsUrban
+                    # + EnjoyRisk
                     + N_siblings
-                    | motherID 
-                    + birthYear
+                    | MotherID 
+                    + BirthYear
                     , data = clean_alldf
 )
 summary(B1model_lm)
 etable(B1model_lm)
 
-B1model_lm_marijuana <- feols(IsGraduate ~ NYS + age_gap
+B1model_lm <- feols(U18_SubstanceExp ~ factor(NYG_ijt) + AGAP_ijt
+                    + Isfemale
+                    + IsUrban
+                    # + EnjoyRisk
+                    + N_siblings
+                    | MotherID 
+                    + BirthYear
+                    , data = clean_alldf
+)
+summary(B1model_lm)
+etable(B1model_lm)
+
+B1model_lm_marijuana <- feols(IsGraduate ~ NYG_ijt + AGAP_ijt
                               + Isfemale
+                              + IsUrban
+                              # + EnjoyRisk
                               + N_siblings
-                              | motherID 
-                              + birthYear
+                              | MotherID 
+                              + BirthYear
                               , data = clean_alldf
 )
 summary(B1model_lm_marijuana)
 etable(B1model_lm_marijuana)
 
-B1model_lm_alcohol <- feols(u18_substanceExp ~ U18NYS + AGAP
+B1model_lm_marijuana <- feols(U18_mariExp ~ NYG_ijt + AGAP_ijt
+                              + Isfemale
+                              + IsUrban
+                              # + EnjoyRisk
+                              + N_siblings
+                              | MotherID 
+                              + BirthYear
+                              , data = clean_alldf
+)
+summary(B1model_lm_marijuana)
+etable(B1model_lm_marijuana)
+
+B1model_lm_alcohol <- feols(U18_alcExp ~ NYG_ijt + AGAP_ijt
                             + Isfemale
                             + N_siblings
-                            | motherID + birthYear 
+                            | MotherID + BirthYear 
                             , data = clean_alldf
 )
 summary(B1model_lm_alcohol)
 etable(B1model_lm_alcohol)
 
-B1model_lm_tabaco <- feols(u18_tabcExp ~ U18NYS + AGAP
+B1model_lm_tabaco <- feols(u18_tabcExp ~ U18NYG + AGAP
                     + Isfemale + IsUrban
                     | motherID
                     , data = clean_alldf
@@ -94,7 +133,7 @@ etable(B1model_lm_tabaco)
 # ロジット回帰モデル ---------------------------------------------------------------
 
 
-B1model_glm <- feglm(u18_substanceExp ~ U18NYS + AGAP
+B1model_glm <- feglm(u18_substanceExp ~ U18NYG + AGAP
                      + Isfemale
                      + N_siblings
                      | motherID 
@@ -105,7 +144,7 @@ B1model_glm <- feglm(u18_substanceExp ~ U18NYS + AGAP
 summary(B1model_glm)
 exp(coef(B1model_glm))
 
-B1model_glm <- feglm(IsGraduate ~ U18NYS + AGAP
+B1model_glm <- feglm(IsGraduate ~ U18NYG + AGAP
                      + Isfemale
                      + N_siblings
                      | motherID 
@@ -116,7 +155,7 @@ B1model_glm <- feglm(IsGraduate ~ U18NYS + AGAP
 summary(B1model_glm)
 exp(coef(B1model_glm))
 
-B1model_glm <- feglm(u18_substanceExp ~ U18NYS + age_gap + familySize
+B1model_glm <- feglm(u18_substanceExp ~ U18NYG + age_gap + familySize
                      + Isfemale + IsUrban + FamilyIncome 
                      | motherID
                      , family = binomial(link = logit)
@@ -125,7 +164,7 @@ B1model_glm <- feglm(u18_substanceExp ~ U18NYS + age_gap + familySize
 summary(B1model_glm)
 exp(coef(B1model_glm))
 
-B1model_glm_marijuana <- feglm(u18_mariExp ~ U18NYS + age_gap + familySize
+B1model_glm_marijuana <- feglm(u18_mariExp ~ U18NYG + age_gap + familySize
                      + Isfemale + IsUrban + FamilyIncome 
                      | motherID
                      , family = binomial(link = logit)
@@ -134,7 +173,7 @@ B1model_glm_marijuana <- feglm(u18_mariExp ~ U18NYS + age_gap + familySize
 summary(B1model_glm_marijuana)
 exp(coef(B1model_glm_marijuana))
 
-B1model_glm_alcohol <- feglm(u18_alcExp ~ U18NYS + age_gap + familySize
+B1model_glm_alcohol <- feglm(u18_alcExp ~ U18NYG + age_gap + familySize
                                + Isfemale + IsUrban + FamilyIncome 
                                | motherID
                                , family = binomial(link = logit)
@@ -143,7 +182,7 @@ B1model_glm_alcohol <- feglm(u18_alcExp ~ U18NYS + age_gap + familySize
 summary(B1model_glm_alcohol)
 exp(coef(B1model_glm_alcohol))
 
-B1model_glm_tabaco <- feglm(u18_tabcExp ~ U18NYS + age_gap + N_siblings
+B1model_glm_tabaco <- feglm(u18_tabcExp ~ U18NYG + age_gap + N_siblings
                              + Isfemale + IsUrban + FamilyIncome 
                              | motherID
                              , family = binomial(link = logit)
@@ -190,7 +229,7 @@ hist(clean_alldf1$u18_substanceExp,breaks = seq(0, 1, by = 0.01), main = "Distri
 hist(clean_alldf1$exSubUse,breaks = seq(-1, 2, by = 0.1), main = "Distribution")
 
 
-ggplot(clean_alldf1, aes(x = U18NYS, y = u18_substanceExp)) +
+ggplot(clean_alldf1, aes(x = U18NYG, y = u18_substanceExp)) +
   geom_smooth(method = "lm",
               # method.args = list(family = binomial(link = logit)),
               color = "blue", se = FALSE) +
@@ -198,7 +237,7 @@ ggplot(clean_alldf1, aes(x = U18NYS, y = u18_substanceExp)) +
   theme_bw() +
   ylim(0, 1)
 
-ggplot(clean_alldf1, aes(x = U18NYS, y = IsEnjoyRisk)) +
+ggplot(clean_alldf1, aes(x = U18NYG, y = IsEnjoyRisk)) +
   geom_smooth(method = "lm",
               # method.args = list(family = binomial(link = logit)),
               color = "blue", se = FALSE) +
@@ -207,7 +246,7 @@ ggplot(clean_alldf1, aes(x = U18NYS, y = IsEnjoyRisk)) +
   ylim(0, 1)
 
 
-ggplot(clean_alldf1, aes(x = U18NYS, y = exSubUse)) +
+ggplot(clean_alldf1, aes(x = U18NYG, y = exSubUse)) +
   geom_point() +
   geom_smooth(method = "lm",
               # method.args = list(family = binomial(link = logit)),
@@ -241,8 +280,8 @@ f_alldf <- clean_alldf1 %>% rename(
   "第3子ダミー" = Is3th,
   "第4子ダミー" = Is4th,
   "兄弟の数" = N_siblings,
-  "弟妹の数" = NYS,
-  "18以下の弟妹の数" = U18NYS,
+  "弟妹の数" = NYG,
+  "18以下の弟妹の数" = U18NYG,
   "下との年齢差" = age_gap,
   "家族サイズ" = familySize,
   "未成年物質使用経験(予測)" = exSubUse,
@@ -321,8 +360,8 @@ clean_alldf2 <- clean_alldf1 %>% filter(
 
 # 推計（メイン） -----------------------------------------------------------------
 
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYS + AGAP
-               + U18NYS:exSubUse + exSubUse:AGAP
+model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + AGAP
+               + U18NYG:exSubUse + exSubUse:AGAP
                + motherAge + IsCollegeStudent
                | childID
                , data = clean_alldf2
@@ -331,8 +370,8 @@ summary(model)
 etable(model)
 
 # + IscollegeStudent
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYS + AGAP 
-               + U18NYS:exSubUse + exSubUse:AGAP
+model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + AGAP 
+               + U18NYG:exSubUse + exSubUse:AGAP
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge + IsCollegeStudent
                | motherID + age
@@ -342,8 +381,8 @@ summary(model)
 etable(model)
 
 # + IsEnjoyRisk
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYS + age_gap 
-               + U18NYS:exSubUse + exSubUse:age_gap
+model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + age_gap 
+               + U18NYG:exSubUse + exSubUse:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + IsEnjoyRisk + motherAge
                | motherID + age
@@ -354,8 +393,8 @@ etable(model)
 
 
 # 各種アウトカム
-model <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYS + age_gap 
-               + U18NYS:exSubUse_marijuana + exSubUse_marijuana:age_gap
+model <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYG + age_gap 
+               + U18NYG:exSubUse_marijuana + exSubUse_marijuana:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age
@@ -364,8 +403,8 @@ model <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYS + age_gap
 summary(model)
 etable(model)
 
-model <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYS + age_gap 
-               + U18NYS:exSubUse_alcohol + exSubUse_alcohol:age_gap
+model <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYG + age_gap 
+               + U18NYG:exSubUse_alcohol + exSubUse_alcohol:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age
@@ -374,8 +413,8 @@ model <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYS + age_gap
 summary(model)
 etable(model)
 
-model <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYS + age_gap 
-               + U18NYS:exSubUse_tabaco + exSubUse_tabaco:age_gap
+model <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYG + age_gap 
+               + U18NYG:exSubUse_tabaco + exSubUse_tabaco:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age
@@ -384,8 +423,8 @@ model <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYS + age_gap
 summary(model)
 etable(model)
 
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYS + age_gap 
-               + i(U18NYS, exSubUse, ref = 0) + exSubUse:age_gap
+model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + age_gap 
+               + i(U18NYG, exSubUse, ref = 0) + exSubUse:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age + year
@@ -395,7 +434,7 @@ summary(model)
 etable(model)
 
 # sdで報告するか or P値で報告するか
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYS + age_gap 
+model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + age_gap 
                + exSubUse:Is2th + exSubUse:Is3th + exSubUse:Is4th + exSubUse:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
@@ -405,8 +444,8 @@ model <- feols(IsTransfer_over50 ~ exSubUse + U18NYS + age_gap
 summary(model)
 etable(model)
 
-model_marijuana <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYS + age_gap 
-               + i(U18NYS, exSubUse_marijuana, ref = 0) + exSubUse_marijuana:age_gap
+model_marijuana <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYG + age_gap 
+               + i(U18NYG, exSubUse_marijuana, ref = 0) + exSubUse_marijuana:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age + year
@@ -415,8 +454,8 @@ model_marijuana <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYS + age_g
 summary(model_marijuana)
 etable(model_marijuana)
 
-model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYS + age_gap 
-               + i(U18NYS, exSubUse_alcohol, ref = 0) + exSubUse_alcohol:age_gap
+model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYG + age_gap 
+               + i(U18NYG, exSubUse_alcohol, ref = 0) + exSubUse_alcohol:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age + year
@@ -425,7 +464,7 @@ model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYS + age_gap
 summary(model_alcohol)
 etable(model_alcohol)
 
-model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYS + age_gap 
+model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYG + age_gap 
                + exSubUse_alcohol:Is2th + exSubUse_alcohol:Is3th + exSubUse_alcohol:Is4th + exSubUse_alcohol:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
@@ -435,8 +474,8 @@ model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYS + age_gap
 summary(model)
 etable(model)
 
-model_tabaco <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYS + age_gap 
-               + i(U18NYS, exSubUse_tabaco, ref = 0) + exSubUse_tabaco:age_gap
+model_tabaco <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYG + age_gap 
+               + i(U18NYG, exSubUse_tabaco, ref = 0) + exSubUse_tabaco:age_gap
                + + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age + year
@@ -448,8 +487,8 @@ etable(model_tabaco)
 
 # バイアス確認用
 
-model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYS + age_gap 
-               + U18NYS:u18_substanceExp + u18_substanceExp:age_gap
+model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYG + age_gap 
+               + U18NYG:u18_substanceExp + u18_substanceExp:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID + age + year
@@ -458,8 +497,8 @@ model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYS + age_gap
 summary(model)
 etable(model)
 
-model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYS + age_gap 
-               + i(U18NYS, u18_substanceExp, ref = 0) + u18_substanceExp:age_gap
+model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYG + age_gap 
+               + i(U18NYG, u18_substanceExp, ref = 0) + u18_substanceExp:age_gap
                + familySize + IsUrban + FamilyIncome
                + Isfemale + motherAge
                | motherID  + age + year
@@ -498,7 +537,7 @@ ggplot(clean_alldf2, aes(x = birthOrder, y = IsTransfer_over50)) +
 # etable(model)
 # 
 # model <- feols(IsTransfer_over50 ~ exSubUse + Is2th + Is3th + Is4th + age_gap 
-#                + U18NYS:exSubUse + exSubUse:age_gap
+#                + U18NYG:exSubUse + exSubUse:age_gap
 #                + familySize + IsUrban
 #                + Isfemale
 #                | motherID + age
