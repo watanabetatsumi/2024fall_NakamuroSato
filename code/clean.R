@@ -41,7 +41,7 @@ IsLiveTogetherdf <- makeVariabledf(dfNaive1,"Q15-74B","IsLiveTogether",2006,2020
 alcoholExpdf <- makeVariabledf(dfNaive1,"YASR-5A","Alcoholever",2000,2020)
 marijuanaExpdf <- makeVariabledf(dfNaive1,"YASR-24A","marijuanaExp",1998,2020)
 tabacoExpdf <- makeVariabledf(dfNaive1,"YASR-19A","tabacoExp",1998,2020)
-Gradedf <- makeVariabledf(dfNaive1,"Q4-2","Educ",1994,2020)
+Gradedf <- makeVariabledf(dfNaive1,"Q4-2","educ",1994,2020)
 IsGraduatedf <- makeVariabledf(dfNaive1,"Q4-28","IsGraduate",1994,2020)
 EnjoyRiskdf <- makeVariabledf(dfNaive1,"Q16-5I-D","EnjoyRisk",1994,2020)
 Urbandf <- makeVariabledf(dfNaive1,"URBAN-RURAL","Urban",1994,2020)
@@ -125,12 +125,12 @@ alldf <- alldf %>% group_by(MotherID,Year) %>%
     # 兄弟の数が欠けていないかVaildate
     Valid_Nsiblings = ifelse(n() == N_siblings,1,0),
     
-  ) %>% arrange(NYS) %>% mutate(
+  ) %>% arrange(NYS_ij) %>% mutate(
     
-    U18NYS = cumsum(ifelse(Age < 18,1,0)),
-    U18NYS = case_when(
-                        Age < 18 ~ U18NYS - 1,
-                        TRUE ~ U18NYS
+    NYS_ijt = cumsum(ifelse(Age < 18,1,0)),
+    NYS_ijt = case_when(
+                        Age < 18 ~ NYS_ijt - 1,
+                        TRUE ~ NYS_ijt
                        )
   ) %>% 
   ungroup() %>% group_by(MotherID,Year,BirthYear) %>%
@@ -353,40 +353,43 @@ alldf <- alldf %>% group_by(ChildID,MotherID) %>% arrange(Year) %>%
     MotherAge = (Year - FirstSurveyYear) + motherAgeAtBirth,
     
     U18_alcExp = case_when(
-                            # all(is.na(U18_alcExp)) ~ NA,
-                            sum(U18_alcExp == 1, na.rm = TRUE) > 0 ~ 1,
-                            sum(U18_alcExp == 1, na.rm = TRUE) == 0 ~ 0,
-                            TRUE ~ U18_alcExp
+                            max(ifelse(Age < 18, U18_alcExp, NA), na.rm = TRUE) == 1 ~ 1,
+                            max(ifelse(Age < 18, U18_alcExp, NA), na.rm = TRUE) == 0 ~ 0,
+                            TRUE ~ NA
                           ),
     
     U18_mariExp = case_when(
-                              sum(U18_mariExp == 1, na.rm = TRUE) > 0 ~ 1,
-                              sum(U18_mariExp == 1, na.rm = TRUE) == 0 ~ 0,
-                              TRUE ~ U18_mariExp
+                              max(ifelse(Age < 18, U18_mariExp, NA), na.rm = TRUE) == 1 ~ 1,
+                              max(ifelse(Age < 18, U18_mariExp, NA), na.rm = TRUE) == 0 ~ 0,
+                              TRUE ~ NA
                             ),
     
     U18_tabcExp = case_when(
-                              sum(U18_tabcExp == 1, na.rm = TRUE) > 0 ~ 1,
-                              sum(U18_tabcExp == 1, na.rm = TRUE) == 0 ~ 0,
-                              TRUE ~ U18_tabcExp
+                              max(ifelse(Age < 18, U18_tabcExp, NA), na.rm = TRUE) == 1 ~ 1,
+                              max(ifelse(Age < 18, U18_tabcExp, NA), na.rm = TRUE) == 0 ~ 0,
+                              TRUE ~ NA
                             ),
     
     U18_Abuse = case_when(
-                            sum(U18_Abuse == 1, na.rm = TRUE) > 0 ~ 1,
-                            sum(U18_Abuse == 1, na.rm = TRUE) == 0 ~ 0,
-                            TRUE ~ U18_Abuse
+                            max(ifelse(Age < 18, U18_Abuse, NA), na.rm = TRUE) == 1 ~ 1,
+                            max(ifelse(Age < 18, U18_Abuse, NA), na.rm = TRUE) == 0 ~ 0,
+                            TRUE ~ NA
                           ),
     
     # SubstanceExp = case_when(
-    #   cumsum(ifelse(SubstanceExp == 1, 1, 0)) > 0 ~ 1,
-    #   cumsum(ifelse(SubstanceExp == 1, 1, 0)) == 0 ~ 0,
-    #   TRUE ~ NA
-    # ),
+    #                           cumsum(ifelse(SubstanceExp == 1, 1, 0)) > 0 ~ 1,
+    #                           cumsum(ifelse(SubstanceExp == 1, 1, 0)) == 0 ~ 0,
+    #                           TRUE ~ NA
+    #                       　),
+    
     U18_SubstanceExp = case_when(
-                                  sum(U18_SubstanceExp == 1, na.rm = TRUE) > 0 ~ 1,
-                                  sum(U18_SubstanceExp == 1, na.rm = TRUE) == 0 ~ 0,
-                                  TRUE ~ U18_SubstanceExp
-                                 )
+                                  max(ifelse(Age < 18, U18_SubstanceExp, NA), na.rm = TRUE) == 1 ~ 1,
+                                  max(ifelse(Age < 18, U18_SubstanceExp, NA), na.rm = TRUE) == 0 ~ 0,
+                                  TRUE ~ NA
+                                 ),
+    
+    AGAP_ijt = ifelse(AGAP_ij == 0, 0, AGAP_ijt)
+    
   ) %>% ungroup()
 
 
@@ -397,10 +400,6 @@ summary <- datasummary(All(alldf) ~ ((標本数 = N) + (平均 = Mean) + (標準
 )
 summary
 
-alldf <- alldf %>% filter(
-  # Flag == 1,
-  # N_siblings != BirthOrder
-)
 
 f_alldf <- alldf %>% rename(
   "子供ID" = ChildID,
@@ -409,8 +408,10 @@ f_alldf <- alldf %>% rename(
   "調査年度" = Year,
   "出生年" = BirthYear,
   "子供の年齢" = Age,
-  "移転(Y)" = Transfer,
+  "移転(Y)" = MainTransfer,
   "移転over50%ダミー(Y)" = IsTransfer_over50,
+  "移転ダミー(Y)" = IsTransfered,
+  "同居ダミー(Y)" = IsLiveTogether,
   "女ダミー"= Isfemale,
   "黒人ダミー" = isBlack,
   "ヒスパニックダミー" = isHispanic,
@@ -421,18 +422,13 @@ f_alldf <- alldf %>% rename(
   "第3子ダミー" = Is3th,
   "第4子ダミー" = Is4th,
   "兄弟の数" = N_siblings,
-  "弟妹の数" = NYS,
-  "未成年の弟妹の数" = U18NYS,
-  "未成年の下の兄弟との年齢差" = AGAP,
+  "弟妹の数" = NYS_ij,
+  "未成年の弟妹の数" = NYS_ijt,
+  "年下の兄弟との年齢差" = AGAP_ij,
+  "未成年の下の兄弟との年齢差" = AGAP_ijt,
   "教育年数(母)" = motherEduc,
   "母親の年齢" = MotherAge,
-  "家族サイズ" = familySize,
   "家族収入(単位は？)" = FamilyIncome,
-  "数学スコア" = PIATmath_v,
-  "読解力スコア" = PIATrecog_v,
-  "読解把握スコア" = PIATcompreh_v,
-  "非行スコア" = TroubleScore,
-  "語彙力" = PIATvocab_v,
   "物質使用経験(総合)" = SubstanceExp,
   "飲酒経験" = alcoholExp,
   "大麻経験" = marijuanaExp,
@@ -460,6 +456,7 @@ f_alldf <- alldf %>% rename(
     "女ダミー",
     "兄弟の数",
     "弟妹の数",
+    "年下の兄弟との年齢差",
     "未成年の弟妹の数",
     "未成年の下の兄弟との年齢差",
     "出生順位",
@@ -468,6 +465,8 @@ f_alldf <- alldf %>% rename(
     "第3子ダミー",
     "第4子ダミー",
     "移転over50%ダミー(Y)",
+    "移転ダミー(Y)",
+    "同居ダミー(Y)",
     "未成年使用ダミー(総合)",
     "未成年飲酒ダミー",
     "未成年大麻使用ダミー",
@@ -490,6 +489,9 @@ summary <- datasummary(All(f_alldf) ~ ((標本数 = N) + (平均 = Mean) + (標�
                        fmt = 3,
 )
 summary
+
+
+# 補足
 
 sapply(alldf[, c("U18_alcExp", "U18_mariExp", "U18_tabcExp", "U18_Abuse")], function(x) sum(is.na(x)))
 sum(is.na(alldf$U18_SubstanceExp))
