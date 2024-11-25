@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{luatexja}
+\begin{document}
+
+
+\begingroup
+\centering
+\begin{tabular}{lcc}
+   \tabularnewline \midrule \midrule
+   Dependent Variable: & \multicolumn{2}{c}{未成年の違法使用(総合)}\\
+   Model:              & (1)             & (2)\\  
+                       &  OLS            & Logit\\  
+   \midrule
+   \emph{Variables}\\
+   下の兄弟の数        & -0.1007$^{***}$ & -0.8857$^{***}$\\   
+                       & (0.0300)        & (0.3018)\\   
+   下の兄弟との年齢差  & -0.0142         & -0.1621$^{*}$\\   
+                       & (0.0089)        & (0.0857)\\   
+   女ダミー            & -0.0551$^{**}$  & -0.5589$^{**}$\\   
+                       & (0.0268)        & (0.2430)\\   
+   兄弟サイズ          & 0.1534$^{**}$   & 1.272$^{***}$\\   
+                       & (0.0629)        & (0.4567)\\   
+   \midrule
+   \emph{Fixed-effects}\\
+   Mother ID           & Yes             & Yes\\  
+   Birth Year          & Yes             & Yes\\  
+   \midrule
+   \emph{Fit statistics}\\
+   Observations        & 21,102          & 7,458\\  
+   Squared Correlation & 0.68564         & 0.16522\\  
+   Pseudo R$^2$        & 0.79936         & 0.12429\\  
+   BIC                 & 22,279.8        & 12,572.3\\  
+   \midrule \midrule
+   \multicolumn{3}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+   \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+\end{tabular}
+\par\endgroup
+
+
+\end{document}
+

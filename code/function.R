@@ -485,6 +485,7 @@ makeStatic_df <- function(df){
     "第2子ダミー" = Is2th,
     "第3子ダミー" = Is3th,
     "第4子ダミー" = Is4th,
+    "第五子以上ダミー" = Is5th_OR_more,
     "兄弟の数" = N_siblings,
     "弟妹の数" = NYG_ij,
     "未成年の弟妹の数" = NYG_ijt,
@@ -500,7 +501,7 @@ makeStatic_df <- function(df){
     "乱用経験" = isAbuse,
     "未成年ダミー" = isU18,
     "教育年数" = educ,
-    "高校卒業ダミー" = IsGraduate,
+    "高校中退ダミー" = IsNoneGraduate,
     "大学生ダミー" = isCollegeStudent,
     "リスク_好みダミー" = IsEnjoyRisk,
     "未成年使用ダミー(総合)" = U18_SubstanceExp,
@@ -528,6 +529,7 @@ makeStatic_df <- function(df){
     "第2子ダミー",
     "第3子ダミー",
     "第4子ダミー",
+    "第五子以上ダミー",
     "移転over50%ダミー(Y)",
     "移転ダミー(Y)",
     "同居ダミー(Y)",
@@ -540,7 +542,7 @@ makeStatic_df <- function(df){
     "黒人ダミー",
     "ヒスパニックダミー",
     "リスク_好みダミー",
-    "高校卒業ダミー",
+    "高校中退ダミー",
     "大学生ダミー"
   )
   return(f_df)
@@ -558,4 +560,40 @@ IsColname <- function(word,df){
   else{
     return ("none")
   }
+}
+
+
+# RemoveFiles関数 -----------------------------------------------------------
+
+RemoveFiles <- function(){
+  # 不要なファイルを削除（PDF以外）
+  files_to_delete <- list.files("./outputs/pdf", pattern = "\\.(aux|log|gz)$", full.names = TRUE)
+  file.remove(files_to_delete)
+}
+
+
+# OutputPDF関数 -------------------------------------------------------------
+
+AddHeader <- function(result){
+  header <- "\\documentclass{article}\n\\usepackage{booktabs}\n\\usepackage{fontspec}\n\\usepackage{luatexja}\n\\begin{document}\n"
+  footer <- "\\end{document}\n"
+  output_dir <- "./outputs/"
+  
+  output_tex <- paste0(output_dir, result,".tex")
+  
+  tex_content <- readLines(output_tex)
+  writeLines(c(header, tex_content, footer), con = output_tex)
+}
+
+# OutputPDF関数 -------------------------------------------------------------
+
+AddHeader_wide <- function(result){
+  header <- "\\documentclass{article}\n\\usepackage{booktabs}\n\\usepackage{fontspec}\n\\usepackage{luatexja}\n\\usepackage{lscape}\n\n\\begin{document}\n\\begin{landscape}\n"
+  footer <- "\\end{landscape}\n\\end{document}\n"
+  output_dir <- "./outputs/"
+  
+  output_tex <- paste0(output_dir, result,".tex")
+  
+  tex_content <- readLines(output_tex)
+  writeLines(c(header, tex_content, footer), con = output_tex)
 }

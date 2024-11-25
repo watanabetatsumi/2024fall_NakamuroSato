@@ -79,11 +79,11 @@ raw_df <- left_join(masterdf,covar_df,by = c('ChildID', 'MotherID','Year','First
 
 # 変数の作成 -------------------------------------------------------------------
 
-alldf <- raw_df
+alldf1 <- raw_df
 
 # 出生順位に関する変数 --------------------------------------------------------------
 
-alldf2 <- alldf %>% group_by(MotherID,Year) %>%
+alldf2 <- alldf1 %>% group_by(MotherID,Year) %>%
   mutate(
     
     # 兄弟の数
@@ -313,6 +313,13 @@ alldf4 <- alldf3 %>% mutate(
                       BirthOrder != 4 & !is.na(BirthOrder) ~ 0,
                       BirthOrder == 4 ~ 1,
                     ),
+  
+  # 第五子以上ダミー
+  Is5th_OR_more = case_when(
+                      BirthOrder < 5 ~ 0,
+                      BirthOrder >= 5 ~ 1,
+                    ),
+  
   # メインのアウトカム
   IsTransfer_over50 = case_when(
                                   MainTransfer <= 2 ~ 0,
@@ -393,9 +400,9 @@ alldf <- alldf4 %>% group_by(ChildID,MotherID) %>% arrange(Year) %>%
     NYG_ijt = ifelse(is.na(NYG_ijt), 0, NYG_ijt),
     NYG_ij = ifelse(is.na(NYG_ij), 0, NYG_ij),
     
-    IsGraduate = case_when(
-                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 1 ~ 1,
-                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 0 ~ 0,
+    IsNoneGraduate = case_when(
+                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 1 ~ 0,
+                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 0 ~ 1,
                             TRUE ~ NA
                            )
     
@@ -409,91 +416,19 @@ summary <- datasummary(All(alldf) ~ ((標本数 = N) + (平均 = Mean) + (標準
 )
 summary
 
+clean_alldf <- alldf %>% filter(
+  # Is1th == 1 | Is2th == 1 | Is3th == 1 | Is4th == 1,
+  # 2子以上いる家庭に限定
+  N_siblings > 1,
+)
 
-f_alldf <- alldf %>% rename(
-  "子供ID" = ChildID,
-  "母親ID" = MotherID,
-  "調査開始年度" = FirstSurveyYear,
-  "調査年度" = Year,
-  "出生年" = BirthYear,
-  "子供の年齢" = Age,
-  "移転(Y)" = MainTransfer,
-  "移転over50%ダミー(Y)" = IsTransfer_over50,
-  "移転ダミー(Y)" = IsTransfered,
-  "同居ダミー(Y)" = IsLiveTogether,
-  "女ダミー"= Isfemale,
-  "黒人ダミー" = isBlack,
-  "ヒスパニックダミー" = isHispanic,
-  "都市住みダミー" = IsUrban,
-  "出生順位" = BirthOrder,
-  "第1子ダミー" = Is1th,
-  "第2子ダミー" = Is2th,
-  "第3子ダミー" = Is3th,
-  "第4子ダミー" = Is4th,
-  "兄弟の数" = N_siblings,
-  "弟妹の数" = NYG_ij,
-  "未成年の弟妹の数" = NYG_ijt,
-  "年下の兄弟との年齢差" = AGAP_ij,
-  "未成年の下の兄弟との年齢差" = AGAP_ijt,
-  "教育年数(母)" = motherEduc,
-  "母親の年齢" = MotherAge,
-  "家族収入(単位は？)" = FamilyIncome,
-  "物質使用経験(総合)" = SubstanceExp,
-  "飲酒経験" = alcoholExp,
-  "大麻経験" = marijuanaExp,
-  "喫煙経験" = tabacoExp,
-  "乱用経験" = isAbuse,
-  "未成年ダミー" = isU18,
-  "教育年数" = educ,
-  "高校卒業ダミー" = IsGraduate,
-  "大学生ダミー" = isCollegeStudent,
-  "リスク_好みダミー" = IsEnjoyRisk,
-  "未成年使用ダミー(総合)" = U18_SubstanceExp,
-  "未成年飲酒ダミー" = U18_alcExp,
-  "未成年大麻使用ダミー" = U18_mariExp,
-  "未成年喫煙ダミー" = U18_tabcExp,
-  "未成年乱用ダミー" = U18_Abuse
-) %>% select(
-    "子供ID",
-    "母親ID",
-    "子供の年齢",
-    "未成年ダミー",
-    "母親の年齢",
-    "出生年",
-    "調査年度",
-    "調査開始年度",
-    "女ダミー",
-    "兄弟の数",
-    "弟妹の数",
-    "年下の兄弟との年齢差",
-    "未成年の弟妹の数",
-    "未成年の下の兄弟との年齢差",
-    "出生順位",
-    "第1子ダミー",
-    "第2子ダミー",
-    "第3子ダミー",
-    "第4子ダミー",
-    "移転over50%ダミー(Y)",
-    "移転ダミー(Y)",
-    "同居ダミー(Y)",
-    "未成年使用ダミー(総合)",
-    "未成年飲酒ダミー",
-    "未成年大麻使用ダミー",
-    "未成年喫煙ダミー",
-    "物質使用経験(総合)",
-    "家族収入(単位は？)",
-    "黒人ダミー",
-    "ヒスパニックダミー",
-    "リスク_好みダミー",
-    "高校卒業ダミー",
-    "大学生ダミー"
-  )
+fclean_alldf <- makeStatic_df(clean_alldf)
 
 
 # 基本統計量 -------------------------------------------------------------------
 
-summary <- datasummary(All(f_alldf) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
-                       data = f_alldf,
+summary <- datasummary(All(fclean_alldf) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
+                       data = fclean_alldf,
                        na.rm = TRUE,
                        fmt = 3,
 )

@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{luatexja}
+\begin{document}
+
+
+\begingroup
+\centering
+\begin{tabular}{lcc}
+   \tabularnewline \midrule \midrule
+   Dependent Variable: & \multicolumn{2}{c}{未成年の違法使用(総合)}\\
+   Model:              & (1)             & (2)\\  
+                       &  OLS            & Logit\\  
+   \midrule
+   \emph{Variables}\\
+   factor(NYG\_ij)1    & -0.1425$^{***}$ & -1.413$^{***}$\\   
+                       & (0.0396)        & (0.4005)\\   
+   factor(NYG\_ij)2    & -0.1550$^{**}$  & -1.493$^{**}$\\   
+                       & (0.0730)        & (0.6456)\\   
+   factor(NYG\_ij)3    & -0.1696         & -1.530\\   
+                       & (0.1165)        & (0.9933)\\   
+   factor(NYG\_ij)4    & -0.3523$^{*}$   & -2.814$^{**}$\\   
+                       & (0.1904)        & (1.401)\\   
+   factor(NYG\_ij)5    & -0.3862$^{*}$   & -2.794\\   
+                       & (0.2135)        & (1.865)\\   
+   factor(NYG\_ij)6    & 0.2069          & 13.79$^{***}$\\   
+                       & (0.1639)        & (1.663)\\   
+   factor(NYG\_ij)7    & -0.9544$^{***}$ & -18.99$^{***}$\\   
+                       & (0.1960)        & (1.941)\\   
+   下の兄弟との年齢差  & 0.0073          & 0.0767\\   
+                       & (0.0136)        & (0.1299)\\   
+   女ダミー            & -0.0566$^{**}$  & -0.5789$^{**}$\\   
+                       & (0.0269)        & (0.2447)\\   
+   兄弟サイズ          & 0.0726          & 0.6618\\   
+                       & (0.0689)        & (0.4941)\\   
+   \midrule
+   \emph{Fixed-effects}\\
+   Mother ID           & Yes             & Yes\\  
+   Birth Year          & Yes             & Yes\\  
+   \midrule
+   \emph{Fit statistics}\\
+   Observations        & 21,102          & 7,458\\  
+   Squared Correlation & 0.68781         & 0.17794\\  
+   Pseudo R$^2$        & 0.80413         & 0.13513\\  
+   BIC                 & 22,193.8        & 12,513.8\\  
+   \midrule \midrule
+   \multicolumn{3}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+   \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+\end{tabular}
+\par\endgroup
+
+
+\end{document}
+
