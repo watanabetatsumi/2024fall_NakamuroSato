@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{threeparttable}
+\usepackage{luatexja}
+\usepackage{lscape}
+
+\begin{document}
+\begin{landscape}
+
+
+\begingroup
+\centering
+\begin{threeparttable}[b]
+   \begin{tabular}{lccc}
+      \tabularnewline \midrule \midrule
+      Dependent Variables:                                & IsTransfer\_over50  & IsTransfered & IsLiveTogether\\  
+      Model:                                              & (1)                 & (2)          & (3)\\  
+      \midrule
+      \emph{Variables}\\
+      未成年の違法使用(総合)                              & -1.175              & -0.8660      & -0.2527\\   
+                                                          & (0.8571)            & (0.8496)     & (0.8888)\\   
+      下の兄弟の数                                        & -0.3119$^{*}$       & -0.0323      & -0.1296\\   
+                                                          & (0.1690)            & (0.1629)     & (0.1802)\\   
+      下の兄弟との年齢差                                  & -0.1656$^{**}$      & -0.0447      & -0.0334\\   
+                                                          & (0.0641)            & (0.0682)     & (0.0610)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟の数 $=$ 1  & -0.0064             & -0.2363      & 0.2364\\   
+                                                          & (0.1778)            & (0.1628)     & (0.1733)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟の数 $=$ 2  & -0.5962$^{**}$      & -0.4361      & 0.5001\\   
+                                                          & (0.2933)            & (0.3074)     & (0.3976)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟との年齢差  & 0.1383$^{*}$        & 0.0227       & 0.0617\\   
+                                                          & (0.0710)            & (0.0646)     & (0.0621)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Mother ID                                           & Yes                 & Yes          & Yes\\  
+      Birth Year                                          & Yes                 & Yes          & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations                                        & 774                 & 1,366        & 771\\  
+      R$^2$                                               & 0.37004             & 0.30135      & 0.39274\\  
+      Within R$^2$                                        & 0.01714             & 0.00506      & 0.00760\\  
+      \midrule \midrule
+      \multicolumn{4}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+      \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+   
+   \begin{tablenotes}\item 18歳以上24歳以下の出生順位が4以下を対象
+   \end{tablenotes}
+\end{threeparttable}
+\par\endgroup
+
+
+\end{landscape}
+\end{document}
+

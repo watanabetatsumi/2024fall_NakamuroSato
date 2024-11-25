@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{threeparttable}
+\usepackage{luatexja}
+\usepackage{lscape}
+
+\begin{document}
+\begin{landscape}
+
+
+\begingroup
+\centering
+\begin{threeparttable}[b]
+   \begin{tabular}{lcccc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable: & \multicolumn{4}{c}{IsTransfered}\\
+      Sample:                                       & 大麻    & 飲酒    & 喫煙    & 総合 \\   
+      Model:                                        & (1)     & (2)     & (3)     & (4)\\  
+      \midrule
+      \emph{Variables}\\
+      未成年の違法使用                              & -1.075  & -29.54  & -4.648  & -0.8605\\   
+                                                    & (3.031) & (22.58) & (31.39) & (0.8498)\\   
+      未成年の違法使用 $\times$ 下の兄弟の数        & 5.440   & 23.61   & -31.29  & -0.2245\\   
+                                                    & (7.195) & (24.42) & (81.44) & (0.1382)\\   
+      未成年の違法使用 $\times$ 下の兄弟との年齢差  & -2.405  & 11.83   & -1.092  & 0.0241\\   
+                                                    & (1.697) & (7.562) & (22.76) & (0.0644)\\   
+      下の兄弟の数                                  &         &         &         & -0.0331\\   
+                                                    &         &         &         & (0.1634)\\   
+      下の兄弟との年齢差                            &         &         &         & -0.0487\\   
+                                                    &         &         &         & (0.0618)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Mother ID                                     & Yes     & Yes     & Yes     & Yes\\  
+      ChildID                                       & Yes     & Yes     & Yes     & \\  
+      Birth Year                                    & Yes     & Yes     & Yes     & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations                                  & 701     & 1,220   & 665     & 1,366\\  
+      R$^2$                                         & 0.43499 & 0.50770 & 0.47358 & 0.30133\\  
+      Within R$^2$                                  & 0.00723 & 0.01871 & 0.00460 & 0.00504\\  
+      \midrule \midrule
+      \multicolumn{5}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+      \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+   
+   \begin{tablenotes}\item 18歳以上24歳以下の出生順位が4以下を対象
+   \end{tablenotes}
+\end{threeparttable}
+\par\endgroup
+
+
+\end{landscape}
+\end{document}
+

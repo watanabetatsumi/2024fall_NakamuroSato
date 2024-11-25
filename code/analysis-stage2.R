@@ -1,16 +1,38 @@
-# 予測スコア算出 -----------------------------------------------------------------
+
+# Texについて -----------------------------------------------------------------
+
+# Texの頭部と末尾に追加
+# \documentclass{article}
+# \usepackage{booktabs}
+# \usepackage{fontspec}
+# \usepackage{luatexja}
+# \begin{document}
+
+# ~hogehoge~
+
+# \end{document}
+
+# 中間ファイルを削除
+
+
+# 依存関係 --------------------------------------------------------------------
+# install.packages("margins")
+library(tidyverse)
+library(modelsummary)
+library(gtsummary)
+library(fixest)
+library(broom)
+library(margins)
+
+
+ # 予測スコア算出 -----------------------------------------------------------------
 
 #predictを使って確率を計算
 
 predictSubUse <- predict(B1model_glm, type = "response", newdata = clean_alldf)
-predictMarijuana_Use <- predict(B1model_lm_marijuana, type = "response", newdata = clean_alldf)
-predictAlcohol_Use <- predict(B1model_lm_alcohol, type = "response", newdata = clean_alldf)
-predictTabaco_Use <- predict(B1model_lm_tabaco, type = "response", newdata = clean_alldf)
-
-# predictSubUse <- predict(B1model_glm, type = "response", newdata = clean_alldf)
-# predictMarijuana_Use <- predict(B1model_glm_marijuana, type = "response", newdata = clean_alldf)
-# predictAlcohol_Use <- predict(B1model_glm_alcohol, type = "response", newdata = clean_alldf)
-# predictTabaco_Use <- predict(B1model_glm_tabaco, type = "response", newdata = clean_alldf)
+predictMarijuana_Use <- predict(B1model_glm_marijuana, type = "response", newdata = clean_alldf)
+predictAlcohol_Use <- predict(B1model_glm_alcohol, type = "response", newdata = clean_alldf)
+predictTabaco_Use <- predict(B1model_glm_tabaco, type = "response", newdata = clean_alldf)
 
 #データフレームに傾向スコアを格納
 clean_alldf1 <-clean_alldf %>%
@@ -19,20 +41,13 @@ clean_alldf1 <-clean_alldf %>%
     exSubUse_marijuana = predictMarijuana_Use,
     exSubUse_alcohol = predictAlcohol_Use,
     exSubUse_tabaco = predictTabaco_Use
-  ) 
-# %>% 
-#   mutate(
-#     exSubUse = exSubUse - min(exSubUse,na.rm = TRUE),
-#     exSubUse_marijuana = exSubUse_marijuana - min(exSubUse_marijuana,na.rm = TRUE),
-#     exSubUse_alcohol = exSubUse_alcohol - min(exSubUse_alcohol,na.rm = TRUE),
-#     exSubUse_tabaco = exSubUse_tabaco - min(exSubUse_tabaco,na.rm = TRUE),
-#   )
+  )
 
-hist(clean_alldf1$u18_substanceExp,breaks = seq(0, 1, by = 0.01), main = "Distribution")
-hist(clean_alldf1$exSubUse,breaks = seq(-1, 2, by = 0.1), main = "Distribution")
+hist(clean_alldf1$U18_SubstanceExp,breaks = seq(0, 1, by = 0.01), main = "Distribution")
+hist(clean_alldf1$exSubUse,breaks = seq(0, 1, by = 0.05), main = "Distribution")
 
 
-ggplot(clean_alldf1, aes(x = U18NYG, y = u18_substanceExp)) +
+ggplot(clean_alldf1, aes(x = NYG_ij, y = U18_SubstanceExp)) +
   geom_smooth(method = "lm",
               # method.args = list(family = binomial(link = logit)),
               color = "blue", se = FALSE) +
@@ -40,16 +55,8 @@ ggplot(clean_alldf1, aes(x = U18NYG, y = u18_substanceExp)) +
   theme_bw() +
   ylim(0, 1)
 
-ggplot(clean_alldf1, aes(x = U18NYG, y = IsEnjoyRisk)) +
-  geom_smooth(method = "lm",
-              # method.args = list(family = binomial(link = logit)),
-              color = "blue", se = FALSE) +
-  labs(x = "弟妹の数", y = "リスク行動") +
-  theme_bw() +
-  ylim(0, 1)
 
-
-ggplot(clean_alldf1, aes(x = U18NYG, y = exSubUse)) +
+ggplot(clean_alldf1, aes(x = NYG_ij, y = exSubUse)) +
   geom_point() +
   geom_smooth(method = "lm",
               # method.args = list(family = binomial(link = logit)),
@@ -58,91 +65,14 @@ ggplot(clean_alldf1, aes(x = U18NYG, y = exSubUse)) +
   theme_bw() +
   ylim(0, 1)
 
+
 # 基本統計量2 -------------------------------------------------------------------
 
-length(clean_alldf1$exSubUse)
-f_alldf <- clean_alldf1 %>% rename(
-  "子供ID" = childID,
-  "母親ID" = motherID,
-  "調査開始年度" = firstSurveyYear,
-  "調査年度" = year,
-  "教育年数" = educ,
-  "出生年" = birthYear,
-  "未成年ダミー" = IsU18,
-  "年齢" = age,
-  "移転(Y)" = Transfer,
-  "移転over50%ダミー(Y)" = IsTransfer_over50,
-  "女ダミー"= Isfemale,
-  "母親の年齢" = motherAge,
-  "黒人ダミー" = IsBlack,
-  "ヒスパニックダミー" = IsHispanic,
-  "都市居住ダミー" = IsUrban,
-  "出生順位" = birthOrder,
-  "第1子ダミー" = Is1th,
-  "第2子ダミー" = Is2th,
-  "第3子ダミー" = Is3th,
-  "第4子ダミー" = Is4th,
-  "第五子以上ダミー" = Is5th_OR_more,
-  "兄弟の数" = N_siblings,
-  "弟妹の数" = NYG,
-  "18以下の弟妹の数" = U18NYG,
-  "下との年齢差" = age_gap,
-  "家族サイズ" = familySize,
-  "未成年物質使用経験(予測)" = exSubUse,
-  "未成年飲酒ダミー(予測)" = exSubUse_alcohol,
-  "未成年大麻使用ダミー(予測)" = exSubUse_marijuana,
-  "未成年喫煙ダミー(予測)" = exSubUse_tabaco,
-  "物質使用経験(総合)" = substanceExp,
-  "飲酒経験" = AlcoholExp,
-  "大麻経験" = MarijuanaExp,
-  "喫煙経験" = TabacoExp,
-  "乱用経験" = IsAbuse,
-  "リスク_好みダミー" = IsEnjoyRisk
-) %>% select(
-  "子供ID",
-  "母親ID",
-  "出生年",
-  "年齢",
-  "調査開始年度",
-  "調査年度",
-  # "教育年数",
-  "女ダミー",
-  "母親の年齢" ,
-  "未成年ダミー",
-  "移転(Y)",
-  "移転over50%ダミー(Y)",
-  "出生順位",
-  "第1子ダミー",
-  "第2子ダミー",
-  "第3子ダミー",
-  "第4子ダミー",
-  "第五子以上ダミー",
-  # "兄弟の数",
-  "弟妹の数",
-  "18以下の弟妹の数",
-  "下との年齢差",
-  "未成年物質使用経験(予測)",
-  "未成年飲酒ダミー(予測)",
-  "未成年大麻使用ダミー(予測)",
-  "未成年喫煙ダミー(予測)",
-  # "物質使用経験(総合)",
-  # "飲酒経験",
-  # "大麻経験",
-  # "喫煙経験",
-  # "乱用経験",
-  "家族サイズ",
-  # "黒人ダミー",
-  # "ヒスパニックダミー",
-  "都市居住ダミー",
-  # "リスク_好みダミー"
-)
+f_alldf <- makeStatic_df2(clean_alldf1)
 
-length(clean_alldf1$exSubUse)
-length(f_alldf$"未成年物質使用経験(予測)")
-sum(is.na(f_alldf$"未成年物質使用経験(予測)"))
 
 f_alldf <- f_alldf %>% filter(
-  17 < `年齢` & `年齢` < 30
+  17 < `子供の年齢` & `子供の年齢` < 30
 )
 summary <- datasummary(All(f_alldf) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
                        data = f_alldf,
@@ -153,202 +83,464 @@ summary <- datasummary(All(f_alldf) ~ ((標本数 = N) + (平均 = Mean) + (標�
 summary
 str(f_alldf)
 
-hist_f(f_alldf,"年齢")
+hist_f(f_alldf,"子供の年齢")
 hist_f(f_alldf,"出生順位")
 hist_f(f_alldf,"弟妹の数")
 
 
 clean_alldf2 <- clean_alldf1 %>% filter(
-  18 < age & age < 23
+  17 < Age & Age < 25,
 )
-
+str(clean_alldf2)
 
 # 推計（メイン） -----------------------------------------------------------------
 
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + AGAP
-               + U18NYG:exSubUse + exSubUse:AGAP
-               + motherAge + IsCollegeStudent
-               | childID
+model3 <- feols(IsLiveTogether ~ exSubUse + NYG_ij + AGAP_ij
+               + NYG_ij:exSubUse + exSubUse:AGAP_ij
+               + N_siblings + Isfemale
+               | MotherID 
+               + BirthYear
                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model3)
 
-# + IscollegeStudent
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + AGAP 
-               + U18NYG:exSubUse + exSubUse:AGAP
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge + IsCollegeStudent
-               | motherID + age
-               , data = clean_alldf2
-)
-summary(model)
-etable(model)
 
-# + IsEnjoyRisk
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + age_gap 
-               + U18NYG:exSubUse + exSubUse:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + IsEnjoyRisk + motherAge
-               | motherID + age
+model2 <- feols(IsTransfered ~ exSubUse + NYG_ij + AGAP_ij
+               + NYG_ij:exSubUse + exSubUse:AGAP_ij
+               + N_siblings + Isfemale
+               | MotherID 
+               + BirthYear
                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model2)
+
+
+model1 <- feols(IsTransfer_over50 ~ exSubUse + NYG_ij + AGAP_ij
+               + NYG_ij:exSubUse + exSubUse:AGAP_ij
+               + N_siblings + Isfemale
+               | MotherID 
+               + BirthYear
+               , data = clean_alldf2
+)
+summary(model1)
+
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result3-1.tex")) {
+  file.remove("./outputs/lm_result3-1.tex")
+}
+etable(model1, model2, model3,
+       tex = TRUE, # LaTeXコードとして出力
+       dict = c(exSubUse = "未成年の違法使用(総合)", exSubUse_marijuana = "未成年大麻経験",
+                exSubUse_alcohol = "未成年飲酒経験", exSubUse_tabaco = "未成年喫煙経験",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result3-1.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
+)
+AddHeader_wide("lm_result3-1")
+
+
+
+model1 <- feols(IsTransfer_over50 ~ exSubUse + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse, ref = 0) + exSubUse:AGAP_ij
+                + N_siblings + Isfemale
+                | MotherID 
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model1)
+
+model2 <- feols(IsTransfered ~ exSubUse + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse, ref = 0) + exSubUse:AGAP_ij
+                + N_siblings + Isfemale
+                | MotherID 
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model2)
+
+model3 <- feols(IsLiveTogether  ~ exSubUse + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse, ref = 0) + exSubUse:AGAP_ij
+                + N_siblings + Isfemale
+                | MotherID 
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model3)
+
+
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result3-2.tex")) {
+  file.remove("./outputs/lm_result3-2.tex")
+}
+etable(model1, model2, model3,
+       tex = TRUE, # LaTeXコードとして出力
+       dict = c(exSubUse = "未成年の違法使用(総合)", exSubUse_marijuana = "未成年大麻経験",
+                exSubUse_alcohol = "未成年飲酒経験", exSubUse_tabaco = "未成年喫煙経験",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result3-2.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
+)
+AddHeader_wide("lm_result3-2")
+
+
+
+# 各種アウトカム(IsTransfer_over50) ----------------------------------------------
+
+model1 <- feols(IsTransfer_over50 ~ exSubUse_marijuana + NYG_ij + AGAP_ij 
+               + NYG_ij:exSubUse_marijuana + exSubUse_marijuana:AGAP_ij
+               | MotherID
+               + ChildID
+               + BirthYear
+               , data = clean_alldf2
+)
+summary(model1)
+
+model2 <- feols(IsTransfer_over50 ~ exSubUse_alcohol + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_alcohol + exSubUse_alcohol:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model2)
+
+model3 <- feols(IsTransfer_over50 ~ exSubUse_tabaco + NYG_ij + AGAP_ij 
+               + NYG_ij:exSubUse_tabaco + exSubUse_tabaco:AGAP_ij
+               | MotherID
+               + ChildID
+               + BirthYear
+               , data = clean_alldf2
+)
+summary(model3)
+
+model4 <- feols(IsTransfer_over50 ~ exSubUse + NYG_ij + AGAP_ij 
+               + NYG_ij:exSubUse + exSubUse:AGAP_ij
+               + Isfemale + N_siblings
+               | MotherID
+               + BirthYear
+               , data = clean_alldf2
+)
+summary(model4)
+
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result4-1.tex")) {
+  file.remove("./outputs/lm_result4-1.tex")
+}
+etable(model1, model2, model3,model4,
+       tex = TRUE, # LaTeXコードとして出力
+       headers = list("Sample:" = list("大麻","飲酒","喫煙","総合")),
+       dict = c(exSubUse = "未成年の違法使用", exSubUse_marijuana = "未成年の違法使用",
+                exSubUse_alcohol = "未成年の違法使用", exSubUse_tabaco = "未成年の違法使用",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result4-1.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
+)
+AddHeader_wide("lm_result4-1")
+
 
 
 # 各種アウトカム
-model <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYG + age_gap 
-               + U18NYG:exSubUse_marijuana + exSubUse_marijuana:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID + age
-               , data = clean_alldf2
+model1 <- feols(IsTransfer_over50 ~ exSubUse_marijuana + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_marijuana, ref = 0) + exSubUse_marijuana:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model1)
 
-model <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYG + age_gap 
-               + U18NYG:exSubUse_alcohol + exSubUse_alcohol:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID + age
-               , data = clean_alldf2
+model2 <- feols(IsTransfer_over50 ~ exSubUse_alcohol + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_alcohol, ref = 0) + exSubUse_alcohol:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model)
-etable(model)
 
-model <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYG + age_gap 
-               + U18NYG:exSubUse_tabaco + exSubUse_tabaco:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID + age
-               , data = clean_alldf2
+model3 <- feols(IsTransfer_over50 ~ exSubUse_tabaco + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_tabaco, ref = 0) + exSubUse_tabaco:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model3)
 
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + age_gap 
-               + i(U18NYG, exSubUse, ref = 0) + exSubUse:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID + age + year
-               , data = clean_alldf2
+model4 <- feols(IsTransfer_over50 ~ exSubUse + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse, ref = 0) + exSubUse:AGAP_ij
+                + Isfemale + N_siblings
+                | MotherID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model4)
 
-# sdで報告するか or P値で報告するか
-model <- feols(IsTransfer_over50 ~ exSubUse + U18NYG + age_gap 
-               + exSubUse:Is2th + exSubUse:Is3th + exSubUse:Is4th + exSubUse:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID + age + year
-               , data = clean_alldf2
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result4-2.tex")) {
+  file.remove("./outputs/lm_result4-2.tex")
+}
+etable(model1, model2, model3,model4,
+       tex = TRUE, # LaTeXコードとして出力
+       headers = list("Sample:" = list("大麻","飲酒","喫煙","総合")),
+       dict = c(exSubUse = "未成年の違法使用", exSubUse_marijuana = "未成年の違法使用",
+                exSubUse_alcohol = "未成年の違法使用", exSubUse_tabaco = "未成年の違法使用",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result4-2.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
 )
-summary(model)
-etable(model)
+AddHeader_wide("lm_result4-2")
 
-model_marijuana <- feols(IsTransfer_over50 ~ exSubUse_marijuana + U18NYG + age_gap 
-                         + i(U18NYG, exSubUse_marijuana, ref = 0) + exSubUse_marijuana:age_gap
-                         + familySize + IsUrban + FamilyIncome
-                         + Isfemale + motherAge
-                         | motherID + age + year
-                         , data = clean_alldf2
+
+# 各種アウトカム(IsTransfered) ----------------------------------------------
+
+model1 <- feols(IsTransfered ~ exSubUse_marijuana + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_marijuana + exSubUse_marijuana:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model_marijuana)
-etable(model_marijuana)
+summary(model1)
 
-model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYG + age_gap 
-                       + i(U18NYG, exSubUse_alcohol, ref = 0) + exSubUse_alcohol:age_gap
-                       + familySize + IsUrban + FamilyIncome
-                       + Isfemale + motherAge
-                       | motherID + age + year
-                       , data = clean_alldf2
+model2 <- feols(IsTransfered ~ exSubUse_alcohol + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_alcohol + exSubUse_alcohol:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model_alcohol)
-etable(model_alcohol)
+summary(model2)
 
-model_alcohol <- feols(IsTransfer_over50 ~ exSubUse_alcohol + U18NYG + age_gap 
-                       + exSubUse_alcohol:Is2th + exSubUse_alcohol:Is3th + exSubUse_alcohol:Is4th + exSubUse_alcohol:age_gap
-                       + familySize + IsUrban + FamilyIncome
-                       + Isfemale + motherAge
-                       | motherID + age + year
-                       , data = clean_alldf2
+model3 <- feols(IsTransfered ~ exSubUse_tabaco + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_tabaco + exSubUse_tabaco:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model3)
 
-model_tabaco <- feols(IsTransfer_over50 ~ exSubUse_tabaco + U18NYG + age_gap 
-                      + i(U18NYG, exSubUse_tabaco, ref = 0) + exSubUse_tabaco:age_gap
-                      + + familySize + IsUrban + FamilyIncome
-                      + Isfemale + motherAge
-                      | motherID + age + year
-                      , data = clean_alldf2
+model4 <- feols(IsTransfered ~ exSubUse + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse + exSubUse:AGAP_ij
+                + Isfemale + N_siblings
+                | MotherID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model_tabaco)
-etable(model_tabaco)
+summary(model4)
 
-
-# バイアス確認用
-
-model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYG + age_gap 
-               + U18NYG:u18_substanceExp + u18_substanceExp:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID + age + year
-               , data = clean_alldf2
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result5-1.tex")) {
+  file.remove("./outputs/lm_result5-1.tex")
+}
+etable(model1, model2, model3,model4,
+       tex = TRUE, # LaTeXコードとして出力
+       headers = list("Sample:" = list("大麻","飲酒","喫煙","総合")),
+       dict = c(exSubUse = "未成年の違法使用", exSubUse_marijuana = "未成年の違法使用",
+                exSubUse_alcohol = "未成年の違法使用", exSubUse_tabaco = "未成年の違法使用",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result5-1.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
 )
-summary(model)
-etable(model)
+AddHeader_wide("lm_result5-1")
 
-model <- feols(IsTransfer_over50 ~ u18_substanceExp + U18NYG + age_gap 
-               + i(U18NYG, u18_substanceExp, ref = 0) + u18_substanceExp:age_gap
-               + familySize + IsUrban + FamilyIncome
-               + Isfemale + motherAge
-               | motherID  + age + year
-               , data = clean_alldf2
+
+# 各種アウトカム
+model1 <- feols(IsTransfered ~ exSubUse_marijuana + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_marijuana, ref = 0) + exSubUse_marijuana:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
 )
-summary(model)
-etable(model)
+summary(model1)
 
-ggplot(clean_alldf2, aes(x = age, y = IsTransfer_over50)) +
-  geom_point() +
-  geom_smooth(method = "glm", 
-              method.args = list(family = binomial(link = logit)),
-              color = "blue", se = FALSE) +
-  labs(x = "年齢", y = "仕送り") +
-  theme_bw() +
-  ylim(0, 1)
+model2 <- feols(IsTransfered ~ exSubUse_alcohol + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_alcohol, ref = 0) + exSubUse_alcohol:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
 
-ggplot(clean_alldf2, aes(x = birthOrder, y = IsTransfer_over50)) +
-  geom_point() +
-  geom_smooth(method = "glm", 
-              method.args = list(family = binomial(link = logit)),
-              color = "blue", se = FALSE) +
-  labs(x = "出生順位", y = "仕送り") +
-  theme_bw() +
-  ylim(0, 1)
+model3 <- feols(IsTransfered ~ exSubUse_tabaco + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_tabaco, ref = 0) + exSubUse_tabaco:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model3)
+
+model4 <- feols(IsTransfered ~ exSubUse + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse, ref = 0) + exSubUse:AGAP_ij
+                + Isfemale + N_siblings
+                | MotherID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model4)
+
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result5-2.tex")) {
+  file.remove("./outputs/lm_result5-2.tex")
+}
+etable(model1, model2, model3,model4,
+       tex = TRUE, # LaTeXコードとして出力
+       headers = list("Sample:" = list("大麻","飲酒","喫煙","総合")),
+       dict = c(exSubUse = "未成年の違法使用", exSubUse_marijuana = "未成年の違法使用",
+                exSubUse_alcohol = "未成年の違法使用", exSubUse_tabaco = "未成年の違法使用",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result5-2.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
+)
+AddHeader_wide("lm_result5-2")
 
 
-# model <- feols(IsTransfer_over50 ~ exSubUse + Is2th + Is3th + Is4th + age_gap 
-#                + Is2th:exSubUse + Is3th:exSubUse + Is4th:exSubUse + exSubUse:age_gap
-#                + familySize + IsUrban 
-#                + Isfemale
-#                | motherID + age
-#               , data = clean_alldf2
-# )
-# summary(model)
-# etable(model)
-# 
-# model <- feols(IsTransfer_over50 ~ exSubUse + Is2th + Is3th + Is4th + age_gap 
-#                + U18NYG:exSubUse + exSubUse:age_gap
-#                + familySize + IsUrban
-#                + Isfemale
-#                | motherID + age
-#                , data = clean_alldf2
-# )
-# summary(model)
-# etable(model)
-# 
 
+# 各種アウトカム(IsLiveTogether) ----------------------------------------------
+
+
+model1 <- feols(IsLiveTogether ~ exSubUse_marijuana + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_marijuana + exSubUse_marijuana:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model1)
+
+model2 <- feols(IsLiveTogether ~ exSubUse_alcohol + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_alcohol + exSubUse_alcohol:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model2)
+
+model3 <- feols(IsLiveTogether ~ exSubUse_tabaco + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse_tabaco + exSubUse_tabaco:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model3)
+
+model4 <- feols(IsLiveTogether ~ exSubUse + NYG_ij + AGAP_ij 
+                + NYG_ij:exSubUse + exSubUse:AGAP_ij
+                + Isfemale + N_siblings
+                | MotherID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model4)
+
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result6-1.tex")) {
+  file.remove("./outputs/lm_result6-1.tex")
+}
+etable(model1, model2, model3,model4,
+       tex = TRUE, # LaTeXコードとして出力
+       headers = list("Sample:" = list("大麻","飲酒","喫煙","総合")),
+       dict = c(exSubUse = "未成年の違法使用", exSubUse_marijuana = "未成年の違法使用",
+                exSubUse_alcohol = "未成年の違法使用", exSubUse_tabaco = "未成年の違法使用",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result6-1.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
+)
+AddHeader_wide("lm_result6-1")
+
+
+
+# 各種アウトカム
+model1 <- feols(IsLiveTogether ~ exSubUse_marijuana + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_marijuana, ref = 0) + exSubUse_marijuana:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model1)
+
+model2 <- feols(IsLiveTogether ~ exSubUse_alcohol + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_alcohol, ref = 0) + exSubUse_alcohol:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+
+model3 <- feols(IsLiveTogether ~ exSubUse_tabaco + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse_tabaco, ref = 0) + exSubUse_tabaco:AGAP_ij
+                | MotherID
+                + ChildID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model3)
+
+model4 <- feols(IsLiveTogether ~ exSubUse + NYG_ij + AGAP_ij 
+                + i(NYG_ij, exSubUse, ref = 0) + exSubUse:AGAP_ij
+                + Isfemale + N_siblings
+                | MotherID
+                + BirthYear
+                , data = clean_alldf2
+)
+summary(model4)
+
+# 4つの回帰モデルを1つのテーブルにまとめて表示し、LaTeX形式で出力
+if (file.exists("./outputs/lm_result6-2.tex")) {
+  file.remove("./outputs/lm_result6-2.tex")
+}
+etable(model1, model2, model3,model4,
+       tex = TRUE, # LaTeXコードとして出力
+       headers = list("Sample:" = list("大麻","飲酒","喫煙","総合")),
+       dict = c(exSubUse = "未成年の違法使用", exSubUse_marijuana = "未成年の違法使用",
+                exSubUse_alcohol = "未成年の違法使用", exSubUse_tabaco = "未成年の違法使用",
+                NYG_ij = "下の兄弟の数", AGAP_ij = "下の兄弟との年齢差",
+                Isfemale = "女ダミー", N_siblings = "兄弟サイズ",
+                MotherID = "Mother ID", BirthYear = "Birth Year"),
+       file = "./outputs/lm_result6-2.tex", # 出力先のファイル
+       keep = c("未成年の","下の兄弟"),
+       # title = "",
+       tpt = TRUE,
+       notes = "18歳以上24歳以下の出生順位が4以下を対象"
+)
+AddHeader_wide("lm_result6-2")

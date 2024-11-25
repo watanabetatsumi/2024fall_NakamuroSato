@@ -549,6 +549,101 @@ makeStatic_df <- function(df){
 }
 
 
+# makeSatatic_df_2 ---------------------------------------------------------
+
+makeStatic_df2 <- function(df){
+  f_df <- df %>% rename(
+    "子供ID" = ChildID,
+    "母親ID" = MotherID,
+    "調査開始年度" = FirstSurveyYear,
+    "調査年度" = Year,
+    "出生年" = BirthYear,
+    "子供の年齢" = Age,
+    "移転(Y)" = MainTransfer,
+    "移転over50%ダミー(Y)" = IsTransfer_over50,
+    "移転ダミー(Y)" = IsTransfered,
+    "同居ダミー(Y)" = IsLiveTogether,
+    "女ダミー"= Isfemale,
+    "黒人ダミー" = isBlack,
+    "ヒスパニックダミー" = isHispanic,
+    "都市住みダミー" = IsUrban,
+    "出生順位" = BirthOrder,
+    "第1子ダミー" = Is1th,
+    "第2子ダミー" = Is2th,
+    "第3子ダミー" = Is3th,
+    "第4子ダミー" = Is4th,
+    "第五子以上ダミー" = Is5th_OR_more,
+    "兄弟の数" = N_siblings,
+    "弟妹の数" = NYG_ij,
+    "未成年の弟妹の数" = NYG_ijt,
+    "年下の兄弟との年齢差" = AGAP_ij,
+    "未成年の下の兄弟との年齢差" = AGAP_ijt,
+    "教育年数(母)" = motherEduc,
+    "母親の年齢" = MotherAge,
+    "家族収入(単位は？)" = FamilyIncome,
+    "物質使用経験(総合)" = SubstanceExp,
+    "飲酒経験" = alcoholExp,
+    "大麻経験" = marijuanaExp,
+    "喫煙経験" = tabacoExp,
+    "乱用経験" = isAbuse,
+    "未成年ダミー" = isU18,
+    "教育年数" = educ,
+    "高校中退ダミー" = IsNoneGraduate,
+    "大学生ダミー" = isCollegeStudent,
+    "リスク_好みダミー" = IsEnjoyRisk,
+    "未成年使用ダミー(総合)" = U18_SubstanceExp,
+    "未成年飲酒ダミー" = U18_alcExp,
+    "未成年大麻使用ダミー" = U18_mariExp,
+    "未成年喫煙ダミー" = U18_tabcExp,
+    "未成年乱用ダミー" = U18_Abuse,
+    "未成年物質使用経験(予測)" = exSubUse,
+    "未成年飲酒ダミー(予測)" = exSubUse_alcohol,
+    "未成年大麻使用ダミー(予測)" = exSubUse_marijuana,
+    "未成年喫煙ダミー(予測)" = exSubUse_tabaco,
+  ) %>% select(
+    "子供ID",
+    "母親ID",
+    "子供の年齢",
+    "未成年ダミー",
+    "母親の年齢",
+    "出生年",
+    "調査年度",
+    "調査開始年度",
+    "女ダミー",
+    "兄弟の数",
+    "弟妹の数",
+    "年下の兄弟との年齢差",
+    "未成年の弟妹の数",
+    "未成年の下の兄弟との年齢差",
+    "出生順位",
+    "第1子ダミー",
+    "第2子ダミー",
+    "第3子ダミー",
+    "第4子ダミー",
+    "第五子以上ダミー",
+    "移転over50%ダミー(Y)",
+    "移転ダミー(Y)",
+    "同居ダミー(Y)",
+    "未成年使用ダミー(総合)",
+    "未成年飲酒ダミー",
+    "未成年大麻使用ダミー",
+    "未成年喫煙ダミー",
+    "物質使用経験(総合)",
+    "家族収入(単位は？)",
+    "黒人ダミー",
+    "ヒスパニックダミー",
+    "リスク_好みダミー",
+    "高校中退ダミー",
+    "大学生ダミー",
+    "未成年物質使用経験(予測)",
+    "未成年飲酒ダミー(予測)",
+    "未成年大麻使用ダミー(予測)",
+    "未成年喫煙ダミー(予測)",
+  )
+  return(f_df)
+}
+
+
 # IsColname関数 -------------------------------------------------------------
 
 IsColname <- function(word,df){
@@ -575,7 +670,7 @@ RemoveFiles <- function(){
 # OutputPDF関数 -------------------------------------------------------------
 
 AddHeader <- function(result){
-  header <- "\\documentclass{article}\n\\usepackage{booktabs}\n\\usepackage{fontspec}\n\\usepackage{luatexja}\n\\begin{document}\n"
+  header <- "\\documentclass{article}\n\\usepackage{booktabs}\n\\usepackage{fontspec}\n\\usepackage{threeparttable}\n\\usepackage{luatexja}\n\\begin{document}\n"
   footer <- "\\end{document}\n"
   output_dir <- "./outputs/"
   
@@ -588,7 +683,7 @@ AddHeader <- function(result){
 # OutputPDF関数 -------------------------------------------------------------
 
 AddHeader_wide <- function(result){
-  header <- "\\documentclass{article}\n\\usepackage{booktabs}\n\\usepackage{fontspec}\n\\usepackage{luatexja}\n\\usepackage{lscape}\n\n\\begin{document}\n\\begin{landscape}\n"
+  header <- "\\documentclass{article}\n\\usepackage{booktabs}\n\\usepackage{fontspec}\n\\usepackage{threeparttable}\n\\usepackage{luatexja}\n\\usepackage{lscape}\n\n\\begin{document}\n\\begin{landscape}\n"
   footer <- "\\end{landscape}\n\\end{document}\n"
   output_dir <- "./outputs/"
   
@@ -597,3 +692,4 @@ AddHeader_wide <- function(result){
   tex_content <- readLines(output_tex)
   writeLines(c(header, tex_content, footer), con = output_tex)
 }
+
