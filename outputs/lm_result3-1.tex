@@ -12,37 +12,53 @@
 \begingroup
 \centering
 \begin{threeparttable}[b]
-   \begin{tabular}{lccc}
+   \begin{tabular}{lcccc}
       \tabularnewline \midrule \midrule
-      Dependent Variables:                                & IsTransfer\_over50  & IsTransfered & IsLiveTogether\\  
-      Model:                                              & (1)                 & (2)          & (3)\\  
+      Dependent Variable: & \multicolumn{4}{c}{譲渡over50\%ダミー}\\
+      Sample:                                             & 大麻           & 飲酒            & 喫煙          & 総合 \\   
+      Model:                                              & (1)            & (2)             & (3)           & (4)\\  
       \midrule
       \emph{Variables}\\
-      未成年の違法使用(総合)                              & -1.318              & -0.8605      & -0.2460\\   
-                                                          & (0.8545)            & (0.8498)     & (0.8784)\\   
-      下の兄弟の数                                        & -0.3137$^{*}$       & -0.0331      & -0.1295\\   
-                                                          & (0.1663)            & (0.1634)     & (0.1798)\\   
-      下の兄弟との年齢差                                  & -0.1114$^{**}$      & -0.0487      & -0.0359\\   
-                                                          & (0.0546)            & (0.0618)     & (0.0588)\\   
-      未成年の違法使用(総合) $\times$ 下の兄弟の数        & -0.1834             & -0.2245      & 0.2446\\   
-                                                          & (0.1521)            & (0.1382)     & (0.1753)\\   
-      未成年の違法使用(総合) $\times$ 下の兄弟との年齢差  & 0.1259              & 0.0241       & 0.0623\\   
-                                                          & (0.0762)            & (0.0644)     & (0.0620)\\   
+      下の兄弟の数                                        & 0.0270         & -0.0155         & -0.0027       & 0.0242\\   
+                                                          & (0.0670)       & (0.0685)        & (0.0627)      & (0.0645)\\   
+      下の兄弟との年齢差                                  & -0.0312        & -0.0683$^{***}$ & -0.0372$^{*}$ & -0.0704$^{***}$\\   
+                                                          & (0.0195)       & (0.0257)        & (0.0197)      & (0.0240)\\   
+      未成年大麻経験 $\times$ 下の兄弟の数                & -0.1432$^{**}$ &                 &               &   \\   
+                                                          & (0.0666)       &                 &               &   \\   
+      未成年大麻経験 $\times$ 下の兄弟との年齢差          & 0.0699$^{*}$   &                 &               &   \\   
+                                                          & (0.0370)       &                 &               &   \\   
+      未成年飲酒経験 $\times$ 下の兄弟の数                &                & -0.1325$^{**}$  &               &   \\   
+                                                          &                & (0.0547)        &               &   \\   
+      未成年飲酒経験 $\times$ 下の兄弟との年齢差          &                & 0.0755$^{**}$   &               &   \\   
+                                                          &                & (0.0319)        &               &   \\   
+      未成年喫煙経験 $\times$ 下の兄弟の数                &                &                 & -0.0829       &   \\   
+                                                          &                &                 & (0.0725)      &   \\   
+      未成年喫煙経験 $\times$ 下の兄弟との年齢差          &                &                 & 0.0838$^{**}$ &   \\   
+                                                          &                &                 & (0.0329)      &   \\   
+      未成年の違法使用(総合)                              &                &                 &               & -0.0903\\   
+                                                          &                &                 &               & (0.0914)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟の数        &                &                 &               & -0.1378$^{***}$\\   
+                                                          &                &                 &               & (0.0530)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟との年齢差  &                &                 &               & 0.0877$^{***}$\\   
+                                                          &                &                 &               & (0.0291)\\   
       \midrule
       \emph{Fixed-effects}\\
-      Mother ID                                           & Yes                 & Yes          & Yes\\  
-      Birth Year                                          & Yes                 & Yes          & Yes\\  
+      Mother ID                                           & Yes            & Yes             & Yes           & Yes\\  
+      Birth Year                                          & Yes            & Yes             & Yes           & Yes\\  
+      Age                                                 & Yes            & Yes             & Yes           & Yes\\  
+      Year                                                & Yes            & Yes             & Yes           & Yes\\  
+      MotherAge                                           & Yes            & Yes             & Yes           & Yes\\  
       \midrule
       \emph{Fit statistics}\\
-      Observations                                        & 774                 & 1,366        & 771\\  
-      R$^2$                                               & 0.36665             & 0.30133      & 0.39273\\  
-      Within R$^2$                                        & 0.01186             & 0.00504      & 0.00758\\  
+      Observations                                        & 1,215          & 1,090           & 1,190         & 1,238\\  
+      R$^2$                                               & 0.75778        & 0.76893         & 0.74549       & 0.75588\\  
+      Within R$^2$                                        & 0.02521        & 0.04832         & 0.03298       & 0.05095\\  
       \midrule \midrule
-      \multicolumn{4}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
-      \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+      \multicolumn{5}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+      \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
    \end{tabular}
    
-   \begin{tablenotes}\item 18歳以上24歳以下の出生順位が4以下を対象
+   \begin{tablenotes}\item 18歳以上23歳以下を対象
    \end{tablenotes}
 \end{threeparttable}
 \par\endgroup

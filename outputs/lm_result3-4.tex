@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{threeparttable}
+\usepackage{luatexja}
+\usepackage{lscape}
+
+\begin{document}
+\begin{landscape}
+
+
+\begingroup
+\centering
+\begin{threeparttable}[b]
+   \begin{tabular}{lccc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable: & \multicolumn{3}{c}{譲渡over50\%ダミー}\\
+      Sample:                                                            & 男            & 女       & 交差項 \\   
+      Model:                                                             & (1)           & (2)      & (3)\\  
+      \midrule
+      \emph{Variables}\\
+      未成年の違法使用(総合)                                             & -0.2568       & 0.0793   & -0.1144\\   
+                                                                         & (0.2069)      & (0.1990) & (0.1068)\\   
+      下の兄弟の数                                                       & 0.1720        & 0.1002   & -0.0099\\   
+                                                                         & (0.1502)      & (0.1545) & (0.0719)\\   
+      下の兄弟との年齢差                                                 & -0.0416       & 0.0092   & -0.0703$^{**}$\\   
+                                                                         & (0.0479)      & (0.0500) & (0.0273)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟の数                       & -0.1702$^{*}$ & -0.1460  & -0.1618$^{***}$\\   
+                                                                         & (0.0952)      & (0.1223) & (0.0575)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟との年齢差                 & 0.1544$^{**}$ & 0.0326   & 0.0831$^{**}$\\   
+                                                                         & (0.0652)      & (0.0740) & (0.0338)\\   
+      未成年の違法使用(総合) $\times$ 下の兄弟の数 $\times$ 女性ダミー   &               &          & 0.0540\\   
+                                                                         &               &          & (0.0563)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Mother ID                                                          & Yes           & Yes      & Yes\\  
+      Birth Year                                                         & Yes           & Yes      & Yes\\  
+      Age                                                                & Yes           & Yes      & Yes\\  
+      Year                                                               & Yes           & Yes      & Yes\\  
+      MotherAge                                                          & Yes           & Yes      & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations                                                       & 519           & 522      & 1,041\\  
+      R$^2$                                                              & 0.89843       & 0.91878  & 0.80593\\  
+      Within R$^2$                                                       & 0.11938       & 0.03787  & 0.06409\\  
+      \midrule \midrule
+      \multicolumn{4}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+      \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+   
+   \begin{tablenotes}\item 18歳以上23歳以下を対象
+   \end{tablenotes}
+\end{threeparttable}
+\par\endgroup
+
+
+\end{landscape}
+\end{document}
+

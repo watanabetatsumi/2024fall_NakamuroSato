@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{threeparttable}
+\usepackage{luatexja}
+\usepackage{lscape}
+
+\begin{document}
+\begin{landscape}
+
+
+\begingroup
+\centering
+\begin{tabular}{lcccc}
+   \tabularnewline \midrule \midrule
+   Dependent Variables:            & 未成年の違法使用(総合) & 未成年大麻経験 & 未成年飲酒経験 & 未成年喫煙経験\\  
+   Model:                          & (1)                    & (2)            & (3)            & (4)\\  
+   \midrule
+   \emph{Variables}\\
+   下の兄弟の数                    & -0.0915$^{**}$         & -0.0693$^{**}$ & -0.0709$^{*}$  & -0.0416\\   
+                                   & (0.0362)               & (0.0289)       & (0.0367)       & (0.0275)\\   
+   下の兄弟との年齢差              & -0.0150                & -0.0108        & -0.0077        & -0.0084\\   
+                                   & (0.0097)               & (0.0077)       & (0.0098)       & (0.0073)\\   
+   女ダミー                        & 0.0118                 & -0.0358        & 0.0257         & -0.0218\\   
+                                   & (0.0410)               & (0.0327)       & (0.0423)       & (0.0308)\\   
+   IsUrban                         & -0.0206                & 0.0154         & -0.0206        & -0.0085\\   
+                                   & (0.0179)               & (0.0135)       & (0.0178)       & (0.0125)\\   
+   IsEnjoyRisk                     & 0.0157$^{***}$         & 0.0141$^{***}$ & 0.0140$^{***}$ & 0.0073$^{**}$\\   
+                                   & (0.0049)               & (0.0037)       & (0.0049)       & (0.0033)\\   
+   下の兄弟の数 $\times$ 女ダミー  & -0.0466                & -0.0011        & -0.0480        & -0.0214\\   
+                                   & (0.0379)               & (0.0241)       & (0.0390)       & (0.0235)\\   
+   \midrule
+   \emph{Fixed-effects}\\
+   Mother ID                       & Yes                    & Yes            & Yes            & Yes\\  
+   Birth Year                      & Yes                    & Yes            & Yes            & Yes\\  
+   \midrule
+   \emph{Fit statistics}\\
+   Observations                    & 8,034                  & 7,984          & 7,685          & 7,913\\  
+   R$^2$                           & 0.69926                & 0.68931        & 0.71191        & 0.71873\\  
+   Within R$^2$                    & 0.01359                & 0.01019        & 0.01025        & 0.00905\\  
+   \midrule \midrule
+   \multicolumn{5}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+   \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+\end{tabular}
+\par\endgroup
+
+
+\end{landscape}
+\end{document}
+

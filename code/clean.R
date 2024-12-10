@@ -1,3 +1,4 @@
+
 # コーディング規則
 
 # --->分析に使う変数は先頭大文字
@@ -40,6 +41,7 @@ IsTransfereddf <- makeVariabledf(dfNaive1,"Q15-74","IsTransfered",2006,2020)
 IsLiveTogetherdf <- makeVariabledf(dfNaive1,"Q15-74B","IsLiveTogether",2006,2020)
 alcoholExpdf <- makeVariabledf(dfNaive1,"YASR-5A","Alcoholever",2000,2020)
 marijuanaExpdf <- makeVariabledf(dfNaive1,"YASR-24A","marijuanaExp",1998,2020)
+FirstUseMarijuanadf <- makeVariabledf(dfNaive1,"YASR-25","firstUseMarijuana",1994,2020)
 tabacoExpdf <- makeVariabledf(dfNaive1,"YASR-19A","tabacoExp",1998,2020)
 Gradedf <- makeVariabledf(dfNaive1,"Q4-2","educ",1994,2020)
 IsGraduatedf <- makeVariabledf(dfNaive1,"Q4-28","IsGraduate",1994,2020)
@@ -47,6 +49,7 @@ EnjoyRiskdf <- makeVariabledf(dfNaive1,"Q16-5I-D","EnjoyRisk",1994,2020)
 Urbandf <- makeVariabledf(dfNaive1,"URBAN-RURAL","Urban",1994,2020)
 AbuseCasedf <- makeVariabledf(dfNaive1,"YASR-71A~000025","AbuseCase",2016,2020)
 FamilyIncomedf <- makeVariabledf(dfNaive1,"Q15-141-TOP","FamilyIncome",2002,2014)
+MachineCheckIsU19 <- makeVariabledf(dfNaive1,"YASR-4BA","MachineCheckIsU19",2002,2014)
 
 # データ整形 -------------------------------------------------------------------
 
@@ -64,16 +67,20 @@ covar_df <- reduce(list(
                         TroubleScoredf,
                         alcoholExpdf,
                         marijuanaExpdf,
+                        FirstUseMarijuanadf,
                         tabacoExpdf,
                         Gradedf,
                         IsGraduatedf,
                         EnjoyRiskdf,
                         Urbandf,
                         AbuseCasedf,
-                        FamilyIncomedf
+                        FamilyIncomedf,
+                        MachineCheckIsU19
                       ), full_join,
                       by = c('ChildID', 'MotherID', 'Year', 'FirstSurveyYear'))
 raw_df <- left_join(masterdf,covar_df,by = c('ChildID', 'MotherID','Year','FirstSurveyYear')) %>% mutate(
+    FirstSurveyYear = FirstSurveyYear ,
+    Year = Year,
     Age = Year - BirthYear
   )
 
@@ -83,37 +90,29 @@ alldf1 <- raw_df
 
 # 出生順位に関する変数 --------------------------------------------------------------
 
-alldf2 <- alldf1 %>% group_by(MotherID,Year) %>%
+alldf2 <- alldf1 %>%  
+  group_by(MotherID,Year) %>% 
   mutate(
     
-    # 兄弟の数
-    N_siblings = max(BirthOrder, na.rm = TRUE),
+    BirthOrder = rank(BirthYear),
+    # 兄弟の数->資源希釈
+    N_siblings = max(BirthOrder),
+    
+  ) %>% ungroup %>% 
+  group_by(MotherID,Year) %>%
+  mutate(
     
     # 下の兄弟の数
-    NYG_ij = N_siblings - BirthOrder,
+    NYG_ijt = N_siblings - BirthOrder,
+    NYG = ifelse(NYG_ijt > 2, 3, NYG_ijt),
     
     # 下の兄弟との差
-    AGAP_ij = lag(BirthYear, order_by = NYG_ij) - BirthYear,
+    AGAP_ijt = lag(BirthYear, order_by = NYG_ijt) - BirthYear,
     
     # ※NA処理
-    AGAP_ij = ifelse(is.na(AGAP_ij),0,AGAP_ij),
-    
-    # その年の18未満の最大Age
-    maxAgeU18 = max(ifelse(Age < 18, Age, NA), na.rm = TRUE),
-    maxAgeU18 = ifelse(is.infinite(maxAgeU18), NA, maxAgeU18),
-    
-    # (18歳未満の)次の兄弟との年齢差
-    age_gap = case_when(
-                        is.na(maxAgeU18) ~ NA,
-                        TRUE ~ Age - maxAgeU18,
-                       ),
-    AGAP_ijt = case_when(
-                          age_gap <= 0 ~ lag(BirthYear, order_by = Age) - BirthYear,
-                          age_gap > 0 ~ age_gap,
-                          is.na(age_gap) ~ NA
-                         ),
-    # ※NA処理
-    AGAP_ijt = ifelse(is.infinite(AGAP_ijt), 0, AGAP_ijt),
+    AGAP_ijt = ifelse(is.na(AGAP_ijt),0,AGAP_ijt),
+    AGAP_ijt = ifelse(is.infinite(AGAP_ijt),0,AGAP_ijt),
+    AGAP = ifelse(AGAP_ijt > 9, 10, AGAP_ijt),
     
     # その他共変量
     FamilyIncome = mean(FamilyIncome, na.rm = TRUE),
@@ -121,17 +120,11 @@ alldf2 <- alldf1 %>% group_by(MotherID,Year) %>%
     familySize = mean(familySize, na.rm = TRUE),
     
     EnjoyRisk = mean(EnjoyRisk, na.rm = TRUE),
-    
+    MaxEnjoyRisk = max(EnjoyRisk, na.rm = TRUE),
+
     # 兄弟の数が欠けていないかVaildate
-    Valid_Nsiblings = ifelse(n() == N_siblings,1,0),
+    Valid_Nsiblings = ifelse(n() == max(BirthOrder),1,0),
     
-  ) %>% arrange(NYG_ij) %>% mutate(
-    
-    NYG_ijt = cumsum(ifelse(Age < 18,1,0)),
-    NYG_ijt = case_when(
-                        Age < 18 ~ NYG_ijt - 1,
-                        TRUE ~ NYG_ijt
-                       )
   ) %>% 
   ungroup() %>% group_by(MotherID,Year,BirthYear) %>%
   mutate(
@@ -142,7 +135,14 @@ alldf2 <- alldf1 %>% group_by(MotherID,Year) %>%
                       Valid_Nsiblings == 1,
                       # 双子を除去
                       isdouble == 1
-                     ) %>% ungroup()
+                     ) %>% ungroup() 
+
+summary <- datasummary(All(alldf2) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
+                       data = alldf2,
+                       na.rm = TRUE,
+                       fmt = 3,
+)
+summary
 
 
 # メインの共変量作成 ---------------------------------------------------------------
@@ -192,19 +192,44 @@ alldf3 <- alldf2 %>% mutate(
                             tabacoExp == 1 ~ 1,
                             cumsum(tabacoExp == 1) > 0 ~ 1,
                             tabacoExp == 0 ~ 0,
-                          )
+                          ),
     
-  ) %>% ungroup() %>% filter(
-                            # 少なくとも18歳より下の年のデータが1つ以上含まれている
-                              age_min < 18
-                            )
+    AGAP_ijt = ifelse(is.na(AGAP_ijt), 0, AGAP_ijt),
+    AGAP = ifelse(is.na(AGAP), 0, AGAP),
+    NYG_ijt = ifelse(is.na(NYG_ijt), 0, NYG_ijt),
+    NYG = ifelse(is.na(NYG), 0, NYG),
+    
+    # IsNoneGraduate = case_when(
+    #   max(ifelse(18 < Age, IsGraduate, NA), na.rm = TRUE) == 1 ~ 0,
+    #   max(ifelse(18 < Age, IsGraduate, NA), na.rm = TRUE) == 0 ~ 1,
+    #   TRUE ~ NA
+    # ),
+    
+    # 母親の年齢
+    MotherAge = (Year - FirstSurveyYear) + motherAgeAtBirth,
+    
+  ) %>% ungroup() %>%
+  filter(
+          # すくなくともその年に18歳になる -> Age = 18 or 17 つまりGrade12以下なら未成年とする。
+          # ただし、推計に使うのは20歳以上にする。なぜなら前年の仕送りを聞いてるから。
+          # 少なくともみんな19歳より上の年での仕送りになる
+          # 少なくとも18歳より下の年のデータが1つ以上含まれている
+          # この操作で、年上の人がいなくなる結果NYG_ijtの最大値が7になっている
+          age_min < 19
+        )
+summary <- datasummary(All(alldf3) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
+                       data = alldf3,
+                       na.rm = TRUE,
+                       fmt = 3,
+)
+summary
 
 
 alldf4 <- alldf3 %>% mutate(
-  # 未成年ダミー(18歳未満=1)
+  # 未成年ダミー(19歳未満=1)
   isU18 = case_when(
                       # これは正しそう
-                      Age > 17 ~ 0,
+                      Age > 18 ~ 0,
                       TRUE ~ 1
                     ),
   
@@ -225,6 +250,8 @@ alldf4 <- alldf3 %>% mutate(
   U18_mariExp = case_when(
                             # これは正しそう
                             marijuanaExp == 1 & isU18 == 1 ~ 1,
+                            0 < firstUseMarijuana & firstUseMarijuana < 18 ~ 1,
+                            0 == firstUseMarijuana ~ NA,
                             is.na(marijuanaExp)  ~ NA,
                             TRUE ~ 0
                           ),
@@ -332,21 +359,6 @@ alldf4 <- alldf3 %>% mutate(
                             TRUE ~ NA
                           ),
   
-  educ = case_when(
-                    educ == 0 | educ == 95 ~ NA,
-                    !is.na(educ) ~ educ
-                  ),
-  
-  isCollegeStudent = case_when(
-                                educ <= 12 ~ 0,
-                                educ > 12 ~ 1,
-                              ),
-  
-  motherEduc = case_when(
-                          motherEduc == 0 | educ == 95 ~ NA,
-                          !is.na(motherEduc) ~ motherEduc
-                        ),
-  
   IsUrban = case_when(
                         Urban == 0 ~ 0,
                         Urban == 1 ~ 1,
@@ -354,57 +366,69 @@ alldf4 <- alldf3 %>% mutate(
                       )
 )
 
+summary <- datasummary(All(alldf4) ~ ((標本数 = N) + (平均 = Mean) + (標準偏差　= SD) + (最小値 = Min) + (最大値 = Max)),
+                       data = alldf4,
+                       na.rm = TRUE,
+                       fmt = 3,
+)
+summary
+
 alldf <- alldf4 %>% group_by(ChildID,MotherID) %>% arrange(Year) %>% 
   mutate(
-    # 母親の年齢
-    MotherAge = (Year - FirstSurveyYear) + motherAgeAtBirth,
     
     U18_alcExp = case_when(
-                            max(ifelse(Age < 18, U18_alcExp, NA), na.rm = TRUE) == 1 ~ 1,
-                            max(ifelse(Age < 18, U18_alcExp, NA), na.rm = TRUE) == 0 ~ 0,
+                            max(ifelse(Age < 19, U18_alcExp, NA), na.rm = TRUE) == 1 ~ 1,
+                            max(ifelse(Age < 19, U18_alcExp, NA), na.rm = TRUE) == 0 ~ 0,
                             TRUE ~ NA
                           ),
     
     U18_mariExp = case_when(
-                              max(ifelse(Age < 18, U18_mariExp, NA), na.rm = TRUE) == 1 ~ 1,
-                              max(ifelse(Age < 18, U18_mariExp, NA), na.rm = TRUE) == 0 ~ 0,
+                              max(ifelse(Age < 19, U18_mariExp, NA), na.rm = TRUE) == 1 ~ 1,
+                              max(ifelse(Age < 19, U18_mariExp, NA), na.rm = TRUE) == 0 ~ 0,
                               TRUE ~ NA
                             ),
     
     U18_tabcExp = case_when(
-                              max(ifelse(Age < 18, U18_tabcExp, NA), na.rm = TRUE) == 1 ~ 1,
-                              max(ifelse(Age < 18, U18_tabcExp, NA), na.rm = TRUE) == 0 ~ 0,
+                              max(ifelse(Age < 19, U18_tabcExp, NA), na.rm = TRUE) == 1 ~ 1,
+                              max(ifelse(Age < 19, U18_tabcExp, NA), na.rm = TRUE) == 0 ~ 0,
                               TRUE ~ NA
                             ),
     
-    U18_Abuse = case_when(
-                            max(ifelse(Age < 18, U18_Abuse, NA), na.rm = TRUE) == 1 ~ 1,
-                            max(ifelse(Age < 18, U18_Abuse, NA), na.rm = TRUE) == 0 ~ 0,
-                            TRUE ~ NA
-                          ),
-    
-    # SubstanceExp = case_when(
-    #                           cumsum(ifelse(SubstanceExp == 1, 1, 0)) > 0 ~ 1,
-    #                           cumsum(ifelse(SubstanceExp == 1, 1, 0)) == 0 ~ 0,
-    #                           TRUE ~ NA
-    #                       　),
+    # U18_Abuse = case_when(
+    #                         max(ifelse(Age < 19, U18_Abuse, NA), na.rm = TRUE) == 1 ~ 1,
+    #                         max(ifelse(Age < 19, U18_Abuse, NA), na.rm = TRUE) == 0 ~ 0,
+    #                         TRUE ~ NA
+    #                       ),
     
     U18_SubstanceExp = case_when(
-                                  max(ifelse(Age < 18, U18_SubstanceExp, NA), na.rm = TRUE) == 1 ~ 1,
-                                  max(ifelse(Age < 18, U18_SubstanceExp, NA), na.rm = TRUE) == 0 ~ 0,
+                                  max(ifelse(Age < 19, U18_SubstanceExp, NA), na.rm = TRUE) == 1 ~ 1,
+                                  max(ifelse(Age < 19, U18_SubstanceExp, NA), na.rm = TRUE) == 0 ~ 0,
                                   TRUE ~ NA
                                  ),
     
-    AGAP_ijt = ifelse(is.na(AGAP_ijt), 0, AGAP_ijt),
-    AGAP_ij = ifelse(is.na(AGAP_ij), 0, AGAP_ij),
-    NYG_ijt = ifelse(is.na(NYG_ijt), 0, NYG_ijt),
-    NYG_ij = ifelse(is.na(NYG_ij), 0, NYG_ij),
+    SubstanceExp = case_when(
+                              max(SubstanceExp, na.rm = TRUE) == 1 ~ 1,
+                              max(SubstanceExp, na.rm = TRUE) == 0 ~ 0,
+                              TRUE ~ NA
+                          　),
     
-    IsNoneGraduate = case_when(
-                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 1 ~ 0,
-                            max(ifelse(17 < Age & Age < 20, IsGraduate, NA), na.rm = TRUE) == 0 ~ 1,
-                            TRUE ~ NA
-                           )
+    marijuanaExp = case_when(
+                              max(marijuanaExp, na.rm = TRUE) == 1 ~ 1,
+                              max(marijuanaExp, na.rm = TRUE) == 0 ~ 0,
+                              TRUE ~ NA
+                            ),
+    
+    alcoholExp = case_when(
+                              max(alcoholExp, na.rm = TRUE) == 1 ~ 1,
+                              max(alcoholExp, na.rm = TRUE) == 0 ~ 0,
+                              TRUE ~ NA
+                            ),
+    
+    tabacoExp = case_when(
+                              max(tabacoExp, na.rm = TRUE) == 1 ~ 1,
+                              max(tabacoExp, na.rm = TRUE) == 0 ~ 0,
+                              TRUE ~ NA
+                            ),
     
   ) %>% ungroup()
 
@@ -433,23 +457,4 @@ summary <- datasummary(All(fclean_alldf) ~ ((標本数 = N) + (平均 = Mean) + 
                        fmt = 3,
 )
 summary
-
-
-# 補足
-
-# sapply(alldf[, c("U18_alcExp", "U18_mariExp", "U18_tabcExp", "U18_Abuse")], function(x) sum(is.na(x)))
-# sum(is.na(alldf$U18_SubstanceExp))
-# sum(!is.na(alldf$U18_SubstanceExp) & !is.na(alldf$U18_alcExp))
-# sum(!is.na(alldf$U18_SubstanceExp) & !is.na(alldf$U18_alcExp) & !is.na(alldf$U18_mariExp) & !is.na(alldf$U18_tabcExp)& !is.na(alldf$U18_Abuse))
-# 
-# 
-# 
-# ggplot(alldf, aes(x = BirthOrder, y = SubstanceExp)) +
-#   geom_smooth(method = "glm", 
-#               method.args = list(family = binomial(link = logit)),
-#               color = "blue", se = TRUE) +
-#   labs(x = "出生順位", y = "未成年使用ダミー") +
-#   theme_bw()+
-#   scale_x_continuous(limits = c(0, NA)) +  # x軸の最小値を0に設定
-#   scale_y_continuous(limits = c(0, NA))    # y軸の最小値を0に設定
 

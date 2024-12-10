@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{threeparttable}
+\usepackage{luatexja}
+\begin{document}
+
+
+\begingroup
+\centering
+\begin{threeparttable}[b]
+   \begin{tabular}{lcc}
+      \tabularnewline \midrule \midrule
+      Dependent Variable: & \multicolumn{2}{c}{IsTransfer\_over50}\\
+      Model:                          & (1)           & (2)\\  
+      \midrule
+      \emph{Variables}\\
+      下の兄弟の数                    & -0.3079$^{*}$ & -0.1730$^{***}$\\   
+                                      & (0.1774)      & (0.0532)\\   
+      下の兄弟との年齢差              & -0.0118       & -0.0064\\   
+                                      & (0.0517)      & (0.0166)\\   
+      女ダミー                        & 0.0544        & -0.0839\\   
+                                      & (0.0909)      & (0.0517)\\   
+      IsUrban                         & -0.0561       & -0.1266$^{*}$\\   
+                                      & (0.1773)      & (0.0743)\\   
+      下の兄弟の数 $\times$ 女ダミー  &               & 0.1371$^{***}$\\   
+                                      &               & (0.0483)\\   
+      \midrule
+      \emph{Fixed-effects}\\
+      Mother ID                       & Yes           & Yes\\  
+      Birth Year                      & Yes           & Yes\\  
+      Year                            & Yes           & Yes\\  
+      Age                             & Yes           & Yes\\  
+      \midrule
+      \emph{Fit statistics}\\
+      Observations                    & 603           & 1,553\\  
+      R$^2$                           & 0.76988       & 0.69615\\  
+      Within R$^2$                    & 0.01274       & 0.02176\\  
+      \midrule \midrule
+      \multicolumn{3}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
+      \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+   \end{tabular}
+   
+   \begin{tablenotes}\item 18歳以上23歳以下を対象
+   \end{tablenotes}
+\end{threeparttable}
+\par\endgroup
+
+
+\end{document}
+

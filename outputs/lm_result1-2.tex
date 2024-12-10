@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{booktabs}
 \usepackage{fontspec}
+\usepackage{threeparttable}
 \usepackage{luatexja}
 \begin{document}
 
@@ -14,24 +15,30 @@
                        &  OLS            & Logit\\  
    \midrule
    \emph{Variables}\\
-   下の兄弟の数        & -0.0254$^{***}$ & -0.1774$^{**}$\\   
-                       & (0.0089)        & (0.0775)\\   
-   下の兄弟との年齢差  & 0.0060$^{**}$   & 0.0441$^{*}$\\   
-                       & (0.0026)        & (0.0235)\\   
-   女ダミー            & -0.0506$^{*}$   & -0.4949$^{**}$\\   
-                       & (0.0268)        & (0.2367)\\   
-   兄弟サイズ          & 0.0189          & 0.3364\\   
-                       & (0.0297)        & (0.2205)\\   
+   factor(NYG\_ij)1    & -0.1550$^{***}$ & -1.433$^{***}$\\   
+                       & (0.0418)        & (0.4011)\\   
+   factor(NYG\_ij)2    & -0.1786$^{**}$  & -1.555$^{**}$\\   
+                       & (0.0780)        & (0.6655)\\   
+   factor(NYG\_ij)3    & -0.2318$^{*}$   & -1.605\\   
+                       & (0.1228)        & (1.017)\\   
+   下の兄弟との年齢差  & 0.0080          & 0.0719\\   
+                       & (0.0151)        & (0.1320)\\   
+   女ダミー            & -0.0277         & -0.5820$^{**}$\\   
+                       & (0.0285)        & (0.2483)\\   
+   IsUrban             & -0.0213         &   \\   
+                       & (0.0175)        &   \\   
+   IsEnjoyRisk         & 0.0156$^{***}$  &   \\   
+                       & (0.0048)        &   \\   
    \midrule
    \emph{Fixed-effects}\\
    Mother ID           & Yes             & Yes\\  
    Birth Year          & Yes             & Yes\\  
    \midrule
    \emph{Fit statistics}\\
-   Observations        & 21,102          & 7,458\\  
-   Squared Correlation & 0.68319         & 0.15309\\  
-   Pseudo R$^2$        & 0.79400         & 0.11401\\  
-   BIC                 & 22,443.5        & 12,678.5\\  
+   Observations        & 8,034           & 7,283\\  
+   Squared Correlation & 0.69976         & 0.17580\\  
+   Pseudo R$^2$        & 0.83046         & 0.13281\\  
+   BIC                 & 18,697.5        & 12,266.2\\  
    \midrule \midrule
    \multicolumn{3}{l}{\emph{Clustered (Mother ID) standard-errors in parentheses}}\\
    \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\

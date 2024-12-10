@@ -26,7 +26,7 @@ changeValue <- function(dfNaive){
     Isfemale,
     FirstSurveyYear,
     BirthYear,
-    BirthOrder,
+    # BirthOrder,
     motherAgeAtBirth
     # CSIBID02_XRND,
     # CSIBID03_XRND,
@@ -46,7 +46,7 @@ renameData <- function(dfNaive){
     sex = CSEX_XRND,
     FirstSurveyYear = FSTYRAFT_XRND,
     BirthYear = CYRB_XRND,
-    BirthOrder = BTHORDR_XRND,
+    # BirthOrder = BTHORDR_XRND,
     motherAgeAtBirth = MAGEBIR_XRND,
   )
   df <- df %>% filter(
@@ -352,13 +352,13 @@ labelcolums <- function(dfNaive){
 Ttest <- function(df_T,f_name){
   # 各t検定の結果を取得
   library(broom)
-  result_female <- t.test(`女ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
-  result_black <- t.test(`黒人ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
-  result_hispanic <- t.test(`ヒスパニックダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
-  result_urban <- t.test(`都市居住ダミー` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
-  result_educ <- t.test(`教育年数` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
-  result_birth <- t.test(`弟妹の数` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
-  result_order <- t.test(`出生順位` ~ `移転over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_female <- t.test(`女ダミー` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_black <- t.test(`黒人ダミー` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_hispanic <- t.test(`ヒスパニックダミー` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_urban <- t.test(`都市居住ダミー` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_educ <- t.test(`教育年数` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_birth <- t.test(`弟妹の数` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
+  result_order <- t.test(`出生順位` ~ `譲渡over50%ダミー(Y)`, df_T ) %>% tidy()
   # 各結果をリストにまとめる
   results_list <- c(
     female = result_female,
@@ -434,11 +434,11 @@ hist_f <- function(df, name) {
       xlab = "年齢差",
       ylab = "人数"
     )
-  } else if (name_str == "家族サイズ") {
+  } else if (name_str == "兄弟サイズ") {
     hist(
-      df$家族サイズ,
-      main = "家族サイズの分布",
-      xlab = "家族サイズ",
+      df$兄弟サイズ,
+      main = "兄弟サイズの分布",
+      xlab = "兄弟サイズ",
       ylab = "家庭数"
     )
   } else if (name_str == "年齢") {
@@ -472,10 +472,10 @@ makeStatic_df <- function(df){
     "調査年度" = Year,
     "出生年" = BirthYear,
     "子供の年齢" = Age,
-    "移転(Y)" = MainTransfer,
-    "移転over50%ダミー(Y)" = IsTransfer_over50,
-    "移転ダミー(Y)" = IsTransfered,
-    "同居ダミー(Y)" = IsLiveTogether,
+    "譲渡" = MainTransfer,
+    "譲渡over50%ダミー" = IsTransfer_over50,
+    "譲渡ダミー" = IsTransfered,
+    "同居ダミー" = IsLiveTogether,
     "女ダミー"= Isfemale,
     "黒人ダミー" = isBlack,
     "ヒスパニックダミー" = isHispanic,
@@ -485,65 +485,58 @@ makeStatic_df <- function(df){
     "第2子ダミー" = Is2th,
     "第3子ダミー" = Is3th,
     "第4子ダミー" = Is4th,
-    "第五子以上ダミー" = Is5th_OR_more,
-    "兄弟の数" = N_siblings,
-    "弟妹の数" = NYG_ij,
-    "未成年の弟妹の数" = NYG_ijt,
-    "年下の兄弟との年齢差" = AGAP_ij,
-    "未成年の下の兄弟との年齢差" = AGAP_ijt,
+    "第5子以上ダミー" = Is5th_OR_more,
+    "兄弟サイズ" = N_siblings,
+    "弟妹の数" = NYG_ijt,
+    "年下の兄弟との年齢差" = AGAP_ijt,
     "教育年数(母)" = motherEduc,
     "母親の年齢" = MotherAge,
     "家族収入(単位は？)" = FamilyIncome,
-    "物質使用経験(総合)" = SubstanceExp,
-    "飲酒経験" = alcoholExp,
-    "大麻経験" = marijuanaExp,
-    "喫煙経験" = tabacoExp,
-    "乱用経験" = isAbuse,
+    "物質使用経験(総合)ダミー" = SubstanceExp,
+    "飲酒経験ダミー" = alcoholExp,
+    "大麻経験ダミー" = marijuanaExp,
+    "喫煙経験ダミー" = tabacoExp,
+    "乱用経験ダミー" = isAbuse,
     "未成年ダミー" = isU18,
     "教育年数" = educ,
-    "高校中退ダミー" = IsNoneGraduate,
-    "大学生ダミー" = isCollegeStudent,
+    # "高校中退ダミー" = IsNoneGraduate,
     "リスク_好みダミー" = IsEnjoyRisk,
-    "未成年使用ダミー(総合)" = U18_SubstanceExp,
+    "未成年使用ダミー(総合)ダミー" = U18_SubstanceExp,
     "未成年飲酒ダミー" = U18_alcExp,
     "未成年大麻使用ダミー" = U18_mariExp,
     "未成年喫煙ダミー" = U18_tabcExp,
     "未成年乱用ダミー" = U18_Abuse
   ) %>% select(
-    "子供ID",
-    "母親ID",
+    # "子供ID",
+    # "母親ID",
     "子供の年齢",
     "未成年ダミー",
-    "母親の年齢",
-    "出生年",
-    "調査年度",
-    "調査開始年度",
+    # "母親の年齢",
+    # "出生年",
+    # "調査年度",
+    # "調査開始年度",
     "女ダミー",
-    "兄弟の数",
+    "兄弟サイズ",
     "弟妹の数",
     "年下の兄弟との年齢差",
-    "未成年の弟妹の数",
-    "未成年の下の兄弟との年齢差",
-    "出生順位",
+    "譲渡over50%ダミー",
+    # "譲渡ダミー",
+    # "同居ダミー",
+    "未成年使用ダミー(総合)ダミー",
+    "未成年飲酒ダミー",
+    "未成年大麻使用ダミー",
+    "未成年喫煙ダミー",
+    "物質使用経験(総合)ダミー",
+    "飲酒経験ダミー",
+    "大麻経験ダミー",
+    "喫煙経験ダミー",
+    "リスク_好みダミー",
+    "都市住みダミー",
     "第1子ダミー",
     "第2子ダミー",
     "第3子ダミー",
     "第4子ダミー",
-    "第五子以上ダミー",
-    "移転over50%ダミー(Y)",
-    "移転ダミー(Y)",
-    "同居ダミー(Y)",
-    "未成年使用ダミー(総合)",
-    "未成年飲酒ダミー",
-    "未成年大麻使用ダミー",
-    "未成年喫煙ダミー",
-    "物質使用経験(総合)",
-    "家族収入(単位は？)",
-    "黒人ダミー",
-    "ヒスパニックダミー",
-    "リスク_好みダミー",
-    "高校中退ダミー",
-    "大学生ダミー"
+    "第5子以上ダミー"
   )
   return(f_df)
 }
@@ -559,9 +552,9 @@ makeStatic_df2 <- function(df){
     "調査年度" = Year,
     "出生年" = BirthYear,
     "子供の年齢" = Age,
-    "移転(Y)" = MainTransfer,
-    "移転over50%ダミー(Y)" = IsTransfer_over50,
-    "移転ダミー(Y)" = IsTransfered,
+    "譲渡(Y)" = MainTransfer,
+    "譲渡over50%ダミー(Y)" = IsTransfer_over50,
+    "譲渡ダミー(Y)" = IsTransfered,
     "同居ダミー(Y)" = IsLiveTogether,
     "女ダミー"= Isfemale,
     "黒人ダミー" = isBlack,
@@ -572,8 +565,8 @@ makeStatic_df2 <- function(df){
     "第2子ダミー" = Is2th,
     "第3子ダミー" = Is3th,
     "第4子ダミー" = Is4th,
-    "第五子以上ダミー" = Is5th_OR_more,
-    "兄弟の数" = N_siblings,
+    "第5子以上ダミー" = Is5th_OR_more,
+    "兄弟サイズ" = N_siblings,
     "弟妹の数" = NYG_ij,
     "未成年の弟妹の数" = NYG_ijt,
     "年下の兄弟との年齢差" = AGAP_ij,
@@ -581,11 +574,11 @@ makeStatic_df2 <- function(df){
     "教育年数(母)" = motherEduc,
     "母親の年齢" = MotherAge,
     "家族収入(単位は？)" = FamilyIncome,
-    "物質使用経験(総合)" = SubstanceExp,
-    "飲酒経験" = alcoholExp,
-    "大麻経験" = marijuanaExp,
-    "喫煙経験" = tabacoExp,
-    "乱用経験" = isAbuse,
+    "物質使用経験(総合)ダミー" = SubstanceExp,
+    "飲酒経験ダミー" = alcoholExp,
+    "大麻経験ダミー" = marijuanaExp,
+    "喫煙経験ダミー" = tabacoExp,
+    "乱用経験ダミー" = isAbuse,
     "未成年ダミー" = isU18,
     "教育年数" = educ,
     "高校中退ダミー" = IsNoneGraduate,
@@ -610,7 +603,7 @@ makeStatic_df2 <- function(df){
     "調査年度",
     "調査開始年度",
     "女ダミー",
-    "兄弟の数",
+    "兄弟サイズ",
     "弟妹の数",
     "年下の兄弟との年齢差",
     "未成年の弟妹の数",
@@ -620,9 +613,9 @@ makeStatic_df2 <- function(df){
     "第2子ダミー",
     "第3子ダミー",
     "第4子ダミー",
-    "第五子以上ダミー",
-    "移転over50%ダミー(Y)",
-    "移転ダミー(Y)",
+    "第5子以上ダミー",
+    "譲渡over50%ダミー(Y)",
+    "譲渡ダミー(Y)",
     "同居ダミー(Y)",
     "未成年使用ダミー(総合)",
     "未成年飲酒ダミー",
